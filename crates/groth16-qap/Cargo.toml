@@ -13,6 +13,7 @@ ark-std.workspace = true
 serde.workspace = true
 thiserror.workspace = true
 rayon.workspace = true
+rand.workspace = true
 
 [lib]
 name = "groth16_qap"

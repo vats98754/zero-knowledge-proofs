@@ -518,6 +518,7 @@ dependencies = [
  "ark-std",
  "groth16-field",
  "groth16-r1cs",
+ "rand",
  "rayon",
  "serde",
  "thiserror",
