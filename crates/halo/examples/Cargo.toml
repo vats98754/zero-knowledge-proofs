@@ -25,3 +25,8 @@ rand.workspace = true
 # Utilities
 serde.workspace = true
 anyhow.workspace = true
+hex.workspace = true
+
+[[example]]
+name = "scalar_multiplication_sequencer"
+path = "examples/scalar_multiplication_sequencer.rs"
