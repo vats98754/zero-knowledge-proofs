@@ -1,0 +1,10 @@
+[package]
+name = "plonk-compile"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+plonk-arith = { path = "../../crates/plonk-arith" }
+plonk-field = { path = "../../crates/field" }
+clap.workspace = true
+anyhow.workspace = true

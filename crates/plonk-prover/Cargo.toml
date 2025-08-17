@@ -1,0 +1,21 @@
+[package]
+name = "plonk-prover"
+version = "0.1.0"
+edition = "2021"
+description = "PLONK prover implementation"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+plonk-field = { path = "../field" }
+plonk-pc = { path = "../pc" }
+plonk-arith = { path = "../plonk-arith" }
+ark-ff.workspace = true
+ark-poly.workspace = true
+ark-std.workspace = true
+rand.workspace = true
+rayon.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true

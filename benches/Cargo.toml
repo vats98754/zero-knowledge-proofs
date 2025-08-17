@@ -1,0 +1,22 @@
+[package]
+name = "plonk-benches"
+version = "0.1.0"
+edition = "2021"
+description = "PLONK benchmarks"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+plonk-field = { path = "../crates/field" }
+plonk-pc = { path = "../crates/pc" }
+plonk-arith = { path = "../crates/plonk-arith" }
+plonk-prover = { path = "../crates/plonk-prover" }
+plonk-verifier = { path = "../crates/plonk-verifier" }
+criterion.workspace = true
+ark-std.workspace = true
+ark-bls12-381.workspace = true
+ark-ff.workspace = true
+rand.workspace = true
+
+[[bench]]
+name = "plonk_bench"
+harness = false
