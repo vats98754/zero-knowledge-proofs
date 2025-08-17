@@ -1,0 +1,26 @@
+# Rust build artifacts
+/target/
+**/target/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+
+# Environment files
+.env
+.env.local
+
+# Documentation build
+/book/
+
+# Lockfiles (keep Cargo.lock for applications, ignore for libraries)
+# We'll keep it since this is an application workspace
+# Cargo.lock
