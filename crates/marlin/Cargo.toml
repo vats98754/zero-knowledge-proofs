@@ -1,0 +1,40 @@
+[package]
+name = "zkp-marlin"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+authors.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Marlin polynomial IOP implementation for universal SNARKs"
+
+[dependencies]
+zkp-field = { path = "../field" }
+zkp-commitments = { path = "../commitments" }
+ark-ff.workspace = true
+ark-ec.workspace = true
+ark-poly.workspace = true
+ark-serialize.workspace = true
+ark-std.workspace = true
+ark-bls12-381.workspace = true
+rand.workspace = true
+thiserror.workspace = true
+rayon.workspace = true
+blake2.workspace = true
+sha2.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+rand_chacha.workspace = true
+
+[[bench]]
+name = "marlin_prove"
+harness = false
+
+[[bench]]
+name = "marlin_verify"
+harness = false

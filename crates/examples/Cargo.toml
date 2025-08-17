@@ -1,0 +1,25 @@
+[package]
+name = "zkp-examples"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+authors.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Examples and integration tests for zero-knowledge proof systems"
+
+[dependencies]
+zkp-field = { path = "../field" }
+zkp-commitments = { path = "../commitments" }
+zkp-marlin = { path = "../marlin" }
+zkp-sonic = { path = "../sonic" }
+ark-ff.workspace = true
+ark-std.workspace = true
+rand.workspace = true
+anyhow.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
