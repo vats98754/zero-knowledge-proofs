@@ -6,6 +6,7 @@ use ark_poly::{EvaluationDomain, GeneralEvaluationDomain};
 use rayon::prelude::*;
 
 /// FFT domain for polynomial operations
+#[derive(Debug, Clone)]
 pub struct FftDomain {
     domain: GeneralEvaluationDomain<Scalar>,
 }
