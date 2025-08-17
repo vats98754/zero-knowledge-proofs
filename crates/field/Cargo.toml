@@ -1,0 +1,31 @@
+[package]
+name = "zkp-field"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+authors.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Field arithmetic and polynomial operations for zero-knowledge proofs"
+
+[dependencies]
+ark-ff.workspace = true
+ark-ec.workspace = true
+ark-poly.workspace = true
+ark-serialize.workspace = true
+ark-std.workspace = true
+ark-bls12-381.workspace = true
+rand.workspace = true
+thiserror.workspace = true
+rayon.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+
+[[bench]]
+name = "field_ops"
+harness = false

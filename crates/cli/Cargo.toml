@@ -1,0 +1,36 @@
+[package]
+name = "zkp-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+authors.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Command-line tools for Marlin and Sonic zero-knowledge proofs"
+
+[[bin]]
+name = "marlin-setup"
+path = "src/bin/marlin_setup.rs"
+
+[[bin]]
+name = "marlin-prove"
+path = "src/bin/marlin_prove.rs"
+
+[[bin]]
+name = "marlin-verify"
+path = "src/bin/marlin_verify.rs"
+
+[dependencies]
+zkp-field = { path = "../field" }
+zkp-commitments = { path = "../commitments" }
+zkp-marlin = { path = "../marlin" }
+zkp-sonic = { path = "../sonic" }
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+rand.workspace = true
