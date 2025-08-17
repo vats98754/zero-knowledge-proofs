@@ -5,7 +5,7 @@
 
 use crate::{Scalar, GroupElement, GroupProjective, Result, CommitmentError};
 use ff::PrimeField;
-use group::{Curve, Group, prime::PrimeCurveAffine};
+use group::prime::PrimeCurveAffine;
 use rayon::prelude::*;
 use std::cmp;
 
@@ -184,8 +184,8 @@ pub fn parallel_msm(scalars: &[Scalar], points: &[GroupElement]) -> Result<Group
 mod tests {
     use super::*;
     use ff::Field;
-    use group::Group;
-    use rand::{thread_rng, Rng};
+    use group::{Group, Curve};
+    use rand::thread_rng;
     
     #[test]
     fn test_msm_simple() {

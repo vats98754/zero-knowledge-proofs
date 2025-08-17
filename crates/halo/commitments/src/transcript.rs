@@ -5,7 +5,6 @@
 
 use crate::{Scalar, GroupElement};
 use ff::PrimeField;
-use group::prime::PrimeCurveAffine;
 use merlin::Transcript as MerlinTranscript;
 
 /// Trait for writing to a transcript

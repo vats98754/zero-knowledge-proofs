@@ -1,6 +1,6 @@
 //! Circuit definitions for Halo
 
-use crate::{Scalar, Result};
+use crate::HaloError;
 
 /// Configuration for a circuit
 #[derive(Clone, Debug)]
@@ -16,10 +16,10 @@ pub struct CircuitConfig {
 /// Trait for defining circuits
 pub trait Circuit {
     /// Configure the circuit with the given config
-    fn configure(config: &CircuitConfig) -> Result<Self>
+    fn configure(config: &CircuitConfig) -> Result<Self, HaloError>
     where
         Self: Sized;
     
     /// Synthesize the circuit
-    fn synthesize(&self) -> Result<()>;
+    fn synthesize(&self) -> Result<(), HaloError>;
 }

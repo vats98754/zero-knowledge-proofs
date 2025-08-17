@@ -389,6 +389,7 @@ dependencies = [
  "halo-core",
  "halo-recursion",
  "halo2-arith",
+ "hex",
  "pairing",
  "rand 0.8.5",
  "serde",

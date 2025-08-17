@@ -3,9 +3,8 @@
 //! This module defines the [`CommitmentEngine`] trait that abstracts over different
 //! polynomial commitment schemes, making them interchangeable and recursion-friendly.
 
-use crate::{Scalar, GroupElement, GroupProjective, Result};
+use crate::{Scalar, GroupElement, Result};
 use ff::PrimeField;
-use group::prime::PrimeCurveAffine;
 use rand_core::RngCore;
 
 /// A polynomial commitment

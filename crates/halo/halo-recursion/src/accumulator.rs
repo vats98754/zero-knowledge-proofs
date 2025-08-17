@@ -1,6 +1,6 @@
 //! Accumulator for recursive proofs
 
-use crate::{Scalar, Result};
+use crate::Scalar;
 
 /// Accumulator instance
 #[derive(Clone, Debug)]
