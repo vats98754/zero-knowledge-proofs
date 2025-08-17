@@ -1,0 +1,60 @@
+[workspace]
+members = [
+    "crates/groth16-field",
+    "crates/groth16-r1cs", 
+    "crates/groth16-qap",
+    "crates/groth16-setup",
+    "crates/groth16-core",
+    "crates/groth16-cli",
+    "crates/groth16-benchmarks",
+    "crates/groth16-examples",
+]
+
+resolver = "2"
+
+[workspace.dependencies]
+# Arkworks ecosystem for elliptic curves and finite fields
+ark-ff = { version = "0.4", features = ["std"] }
+ark-ec = { version = "0.4", features = ["std"] }
+ark-poly = { version = "0.4", features = ["std"] }
+ark-bls12-381 = { version = "0.4", features = ["std"] }
+ark-serialize = { version = "0.4", features = ["std"] }
+ark-std = { version = "0.4", features = ["std", "print-trace"] }
+
+# Random number generation
+rand = "0.8"
+rand_chacha = "0.8"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# CLI
+clap = { version = "4.0", features = ["derive"] }
+
+# Benchmarking
+criterion = { version = "0.5", features = ["html_reports"] }
+
+# Testing
+proptest = "1.4"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Parallel computation
+rayon = "1.8"
+
+# Utilities
+hex = "0.4"
+sha2 = "0.10"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.bench]
+inherits = "release"
+debug = true

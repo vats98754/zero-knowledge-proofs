@@ -1,0 +1,25 @@
+[package]
+name = "groth16-examples"
+version = "0.1.0"
+edition = "2021"
+description = "Examples and demo circuits for Groth16"
+
+[dependencies]
+groth16-field = { path = "../groth16-field" }
+groth16-r1cs = { path = "../groth16-r1cs" }
+groth16-qap = { path = "../groth16-qap" }
+groth16-setup = { path = "../groth16-setup" }
+groth16-core = { path = "../groth16-core" }
+rand.workspace = true
+anyhow.workspace = true
+
+[[example]]
+name = "range_check"
+path = "examples/range_check.rs"
+
+[[example]]
+name = "arithmetic_circuit"
+path = "examples/arithmetic_circuit.rs"
+
+[lib]
+name = "groth16_examples"

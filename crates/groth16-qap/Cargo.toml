@@ -1,0 +1,18 @@
+[package]
+name = "groth16-qap"
+version = "0.1.0"
+edition = "2021"
+description = "QAP (Quadratic Arithmetic Program) implementation for Groth16"
+
+[dependencies]
+groth16-field = { path = "../groth16-field" }
+groth16-r1cs = { path = "../groth16-r1cs" }
+ark-ff.workspace = true
+ark-poly.workspace = true
+ark-std.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+rayon.workspace = true
+
+[lib]
+name = "groth16_qap"

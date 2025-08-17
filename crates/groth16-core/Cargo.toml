@@ -1,0 +1,23 @@
+[package]
+name = "groth16-core"
+version = "0.1.0"
+edition = "2021"
+description = "Core Groth16 prover and verifier implementation"
+
+[dependencies]
+groth16-field = { path = "../groth16-field" }
+groth16-r1cs = { path = "../groth16-r1cs" }
+groth16-qap = { path = "../groth16-qap" }
+groth16-setup = { path = "../groth16-setup" }
+ark-ff.workspace = true
+ark-ec.workspace = true
+ark-bls12-381.workspace = true
+ark-serialize.workspace = true
+ark-std.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+rand.workspace = true
+rayon.workspace = true
+
+[lib]
+name = "groth16_core"
