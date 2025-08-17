@@ -110,7 +110,7 @@ impl<F: FieldLike + FftField> QAP<F> {
         let mut c_polys = vec![DensePolynomial::zero(); num_variables];
         
         // For each constraint, extract coefficients and build polynomial evaluations
-        let omega = domain.group_gen();
+        let _omega = domain.group_gen();
         let mut a_evals = vec![vec![<F as Zero>::zero(); num_variables]; num_constraints];
         let mut b_evals = vec![vec![<F as Zero>::zero(); num_variables]; num_constraints];
         let mut c_evals = vec![vec![<F as Zero>::zero(); num_variables]; num_constraints];
@@ -164,9 +164,9 @@ impl<F: FieldLike + FftField> QAP<F> {
             }
             
             // Interpolate using the evaluation domain
-            a_polys[var_idx] = domain.ifft(&a_vals_padded);
-            b_polys[var_idx] = domain.ifft(&b_vals_padded);
-            c_polys[var_idx] = domain.ifft(&c_vals_padded);
+            a_polys[var_idx] = DensePolynomial::from_coefficients_vec(domain.ifft(&a_vals_padded));
+            b_polys[var_idx] = DensePolynomial::from_coefficients_vec(domain.ifft(&b_vals_padded));
+            c_polys[var_idx] = DensePolynomial::from_coefficients_vec(domain.ifft(&c_vals_padded));
         }
         
         // Compute vanishing polynomial Z(x) = x^n - 1 for domain of size n
@@ -235,7 +235,7 @@ impl<F: FieldLike + FftField> QAP<F> {
         // Compute A(x) = Σ assignment[i] * A_i(x)
         let mut a_poly = DensePolynomial::zero();
         for (i, &var_val) in assignment.iter().enumerate() {
-            if !var_val.is_zero() {
+            if !<F as Zero>::is_zero(&var_val) {
                 a_poly = &a_poly + &(&self.a_polys[i] * var_val);
             }
         }
@@ -243,7 +243,7 @@ impl<F: FieldLike + FftField> QAP<F> {
         // Compute B(x) = Σ assignment[i] * B_i(x)
         let mut b_poly = DensePolynomial::zero();
         for (i, &var_val) in assignment.iter().enumerate() {
-            if !var_val.is_zero() {
+            if !<F as Zero>::is_zero(&var_val) {
                 b_poly = &b_poly + &(&self.b_polys[i] * var_val);
             }
         }
@@ -251,7 +251,7 @@ impl<F: FieldLike + FftField> QAP<F> {
         // Compute C(x) = Σ assignment[i] * C_i(x)
         let mut c_poly = DensePolynomial::zero();
         for (i, &var_val) in assignment.iter().enumerate() {
-            if !var_val.is_zero() {
+            if !<F as Zero>::is_zero(&var_val) {
                 c_poly = &c_poly + &(&self.c_polys[i] * var_val);
             }
         }
@@ -306,7 +306,7 @@ pub mod utils {
         loop {
             let point = F::rand(rng);
             // Make sure it's not a domain point (evaluation should be non-zero)
-            if !domain.evaluate_vanishing_polynomial(point).is_zero() {
+            if !<F as Zero>::is_zero(&domain.evaluate_vanishing_polynomial(point)) {
                 return point;
             }
         }
@@ -327,7 +327,7 @@ pub mod utils {
 mod tests {
     use super::*;
     use groth16_field::F;
-    use groth16_r1cs::{R1CS, LinearCombination, Variable};
+    use groth16_r1cs::{R1CS, LinearCombination};
     use rand::thread_rng;
     
     #[test]
