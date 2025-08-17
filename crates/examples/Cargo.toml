@@ -25,3 +25,4 @@ merlin.workspace = true
 rand.workspace = true
 clap.workspace = true
 serde.workspace = true
+hex = "0.4"
