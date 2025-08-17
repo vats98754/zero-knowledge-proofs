@@ -1,7 +1,7 @@
 # zero-knowledge-proofs
 I wanted to understand the important zero-knowledge commitment schemes (for my learning) that have provided prover and verifier optimizations in the field of zk.
 
-Each feature branch implements one complete, tested, and benchmarked proof system (as described in the prompts you already created). The main branch is the integration branch that merges every feature branch together and provides unified cross-backend tests, integration examples, and combined benchmarks.
+Each feature branch implements one complete, tested, and benchmarked proof system. The main branch is the integration branch that merges every feature branch together and provides unified cross-backend tests, integration examples, and combined benchmarks.
 
 Branch convention (one branch per architecture):
 1. main — merged integration of everything (golden CI + nightly benchmark runs)
