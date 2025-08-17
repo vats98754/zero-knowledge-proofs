@@ -1,0 +1,65 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/halo/halo-core",
+    "crates/halo/halo-recursion", 
+    "crates/halo/halo2-arith",
+    "crates/halo/commitments",
+    "crates/halo/examples",
+    "benches",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+authors = ["Halo Implementation Team"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/vats98754/zero-knowledge-proofs"
+homepage = "https://github.com/vats98754/zero-knowledge-proofs"
+
+[workspace.dependencies]
+# Core cryptographic dependencies
+group = "0.13"
+ff = "0.13"
+pairing = "0.23"
+bls12_381 = "0.8"
+subtle = "2.5"
+rand = "0.8"
+rand_core = { version = "0.6", default-features = false }
+
+# Transcript and Fiat-Shamir
+merlin = "3.0"
+
+# Serialization and utilities
+serde = { version = "1.0", features = ["derive"] }
+hex = "0.4"
+byteorder = "1.4"
+
+# Testing and benchmarking
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.0"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Parallel computation
+rayon = "1.7"
+
+# Workspace internal dependencies
+halo-core = { path = "crates/halo/halo-core" }
+halo-recursion = { path = "crates/halo/halo-recursion" }
+halo2-arith = { path = "crates/halo/halo2-arith" }
+commitments = { path = "crates/halo/commitments" }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+
+[profile.bench]
+opt-level = 3
+lto = "thin" 
+codegen-units = 1
+debug = true
