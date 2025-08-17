@@ -5,8 +5,8 @@
 
 use crate::{Result, MarlinError};
 use zkp_field::{Scalar, polynomial::{PolynomialOps, DensePolynomial}, fft::FftDomain};
-use ark_ff::{Zero, One, Field};
-use ark_poly::polynomial::DenseUVPolynomial;
+use ark_ff::{Zero, One, UniformRand};
+use ark_poly::DenseUVPolynomial;
 use std::collections::HashMap;
 
 /// R1CS constraint system representation
@@ -276,7 +276,7 @@ impl R1CS {
         let mut vanishing_coeffs = vec![Scalar::zero(); domain.size() + 1];
         vanishing_coeffs[0] = -Scalar::one(); // Constant term: -1
         vanishing_coeffs[domain.size()] = Scalar::one(); // X^|H| term: 1
-        let vanishing_poly = DensePolynomial::from_coefficients_slice(&vanishing_coeffs);
+        let vanishing_poly = DensePolynomial::from_coefficients_vec(vanishing_coeffs);
 
         Ok(R1CSEncoding {
             a_selectors,
@@ -385,7 +385,7 @@ impl R1CSEncoding {
             quotient_coeffs[1] = variable_assignment.get(0).copied().unwrap_or(Scalar::zero());
         }
 
-        Ok(DensePolynomial::from_coefficients_slice(&quotient_coeffs))
+        Ok(DensePolynomial::from_coefficients_vec(quotient_coeffs))
     }
 }
 

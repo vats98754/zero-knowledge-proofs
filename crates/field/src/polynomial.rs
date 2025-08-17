@@ -172,6 +172,48 @@ impl PolynomialOps {
         
         Ok(result)
     }
+
+    /// Interpolates a polynomial from domain evaluations using FFT
+    pub fn interpolate_from_domain(
+        evaluations: &[Scalar],
+        domain: &crate::fft::FftDomain,
+    ) -> Result<DensePolynomial> {
+        if evaluations.len() > domain.size() {
+            return Err(FieldError::InvalidFftSize);
+        }
+
+        // Pad evaluations to domain size
+        let mut padded_evals = evaluations.to_vec();
+        padded_evals.resize(domain.size(), Scalar::zero());
+
+        // Use inverse FFT to get polynomial coefficients
+        let coeffs = domain.ifft(&padded_evals)?;
+        Ok(DensePolynomial::from_coefficients_vec(coeffs))
+    }
+
+    /// Adds two polynomials
+    pub fn add(
+        poly1: &DensePolynomial,
+        poly2: &DensePolynomial,
+    ) -> Result<DensePolynomial> {
+        Ok(poly1 + poly2)
+    }
+
+    /// Subtracts two polynomials
+    pub fn subtract(
+        poly1: &DensePolynomial,
+        poly2: &DensePolynomial,
+    ) -> Result<DensePolynomial> {
+        Ok(poly1 - poly2)
+    }
+
+    /// Multiplies two polynomials
+    pub fn multiply(
+        poly1: &DensePolynomial,
+        poly2: &DensePolynomial,
+    ) -> Result<DensePolynomial> {
+        Ok(poly1 * poly2)
+    }
 }
 
 #[cfg(test)]

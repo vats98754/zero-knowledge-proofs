@@ -5,10 +5,10 @@
 
 use crate::{Result, MarlinError};
 use zkp_field::{Scalar, polynomial::{PolynomialOps, DensePolynomial}, fft::FftDomain};
-use zkp_commitments::{CommitmentEngine, CommitmentError};
-use ark_ff::{Zero, One, Field};
+use zkp_commitments::CommitmentEngine;
+use ark_ff::{Zero, One, UniformRand};
+use ark_poly::DenseUVPolynomial;
 use ark_std::rand::Rng;
-use std::collections::HashMap;
 
 /// Marlin polynomial IOP configuration
 #[derive(Clone, Debug)]
@@ -158,9 +158,9 @@ impl MarlinProver {
         for _ in 0..count {
             let mut coeffs = Vec::with_capacity(degree + 1);
             for _ in 0..=degree {
-                coeffs.push(Scalar::rand(rng));
+                coeffs.push(UniformRand::rand(rng));
             }
-            let mask_poly = DensePolynomial::from_coefficients_slice(&coeffs);
+            let mask_poly = DensePolynomial::from_coefficients_vec(coeffs);
             self.mask_polys.push(mask_poly);
         }
         Ok(())
@@ -307,7 +307,7 @@ impl MarlinProver {
             }
         }
 
-        Ok(DensePolynomial::from_coefficients_slice(&coeffs))
+        Ok(DensePolynomial::from_coefficients_vec(coeffs))
     }
 
     /// Computes first quotient polynomial h_1
@@ -318,7 +318,7 @@ impl MarlinProver {
         if coeffs.len() > 1 {
             coeffs[1] = alpha * alpha;
         }
-        Ok(DensePolynomial::from_coefficients_slice(&coeffs))
+        Ok(DensePolynomial::from_coefficients_vec(coeffs))
     }
 
     /// Computes second quotient polynomial h_2
@@ -329,7 +329,7 @@ impl MarlinProver {
         if coeffs.len() > 1 {
             coeffs[1] = beta + Scalar::one();
         }
-        Ok(DensePolynomial::from_coefficients_slice(&coeffs))
+        Ok(DensePolynomial::from_coefficients_vec(coeffs))
     }
 
     /// Computes grand product polynomial g
@@ -337,7 +337,7 @@ impl MarlinProver {
         // Simplified grand product computation
         let mut coeffs = vec![Scalar::one(); domain.size()];
         coeffs[0] = alpha * beta;
-        Ok(DensePolynomial::from_coefficients_slice(&coeffs))
+        Ok(DensePolynomial::from_coefficients_vec(coeffs))
     }
 }
 
@@ -353,7 +353,7 @@ impl MarlinVerifier {
 
     /// Generates a random challenge
     pub fn generate_challenge<R: Rng>(&mut self, rng: &mut R) -> Scalar {
-        let challenge = Scalar::rand(rng);
+        let challenge = UniformRand::rand(rng);
         self.challenges.push(challenge);
         challenge
     }

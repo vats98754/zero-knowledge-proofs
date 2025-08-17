@@ -4,9 +4,10 @@
 //! including proof generation and the 3-round interactive protocol.
 
 use crate::{Result, MarlinError, iop::*, r1cs::*};
-use zkp_field::{Scalar, polynomial::{PolynomialOps, DensePolynomial}, fft::FftDomain, batch::BatchOps};
-use zkp_commitments::{CommitmentEngine, CommitmentError};
-use ark_ff::{Zero, One, Field, UniformRand};
+use zkp_field::{Scalar, polynomial::{PolynomialOps, DensePolynomial}, fft::FftDomain};
+use zkp_commitments::CommitmentEngine;
+use ark_ff::{Zero, One, UniformRand};
+use ark_poly::DenseUVPolynomial;
 use ark_std::rand::Rng;
 use std::marker::PhantomData;
 
@@ -233,10 +234,10 @@ impl<E: CommitmentEngine> ProverContext<E> {
         for _ in 0..num_masks {
             let mut coeffs = Vec::with_capacity(domain_size);
             for _ in 0..domain_size {
-                coeffs.push(Scalar::rand(rng));
+                coeffs.push(UniformRand::rand(rng));
             }
             
-            let mask_poly = DensePolynomial::from_coefficients_slice(&coeffs);
+            let mask_poly = DensePolynomial::from_coefficients_vec(coeffs);
             self.masking_polynomials.push(mask_poly);
         }
 
@@ -277,8 +278,8 @@ impl<E: CommitmentEngine> ProverContext<E> {
     /// Executes round 2 of the Marlin protocol
     pub fn execute_round2<R: Rng>(&mut self, rng: &mut R) -> Result<Round2Prover<E>> {
         // Generate challenges (in practice, these come from verifier/Fiat-Shamir)
-        let alpha = Scalar::rand(rng);
-        let beta = Scalar::rand(rng);
+        let alpha = UniformRand::rand(rng);
+        let beta = UniformRand::rand(rng);
         
         self.challenges.push(alpha);
         self.challenges.push(beta);
@@ -310,7 +311,7 @@ impl<E: CommitmentEngine> ProverContext<E> {
     /// Executes round 3 of the Marlin protocol
     pub fn execute_round3<R: Rng>(&mut self, rng: &mut R) -> Result<Round3Prover<E>> {
         // Generate evaluation challenge (in practice, from verifier/Fiat-Shamir)
-        let zeta = Scalar::rand(rng);
+        let zeta = UniformRand::rand(rng);
         self.challenges.push(zeta);
 
         let mut openings = Vec::new();
@@ -395,7 +396,7 @@ impl<E: CommitmentEngine> ProverContext<E> {
             coeffs[1] = alpha * alpha;
         }
 
-        Ok(DensePolynomial::from_coefficients_slice(&coeffs))
+        Ok(DensePolynomial::from_coefficients_vec(coeffs))
     }
 
     /// Computes second quotient polynomial h_2
@@ -409,7 +410,7 @@ impl<E: CommitmentEngine> ProverContext<E> {
             coeffs[1] = beta + Scalar::one();
         }
 
-        Ok(DensePolynomial::from_coefficients_slice(&coeffs))
+        Ok(DensePolynomial::from_coefficients_vec(coeffs))
     }
 
     /// Computes grand product polynomial
@@ -425,7 +426,7 @@ impl<E: CommitmentEngine> ProverContext<E> {
             coeffs[i] = coeffs[i-1] * (alpha + Scalar::from(i as u64));
         }
 
-        Ok(DensePolynomial::from_coefficients_slice(&coeffs))
+        Ok(DensePolynomial::from_coefficients_vec(coeffs))
     }
 }
 
@@ -460,7 +461,7 @@ impl<E: CommitmentEngine> MarlinBatchProver<E> {
         // Generate shared batch randomness
         self.batch_randomness.clear();
         for _ in 0..witnesses.len() {
-            self.batch_randomness.push(Scalar::rand(rng));
+            self.batch_randomness.push(UniformRand::rand(rng));
         }
 
         // Generate individual proofs

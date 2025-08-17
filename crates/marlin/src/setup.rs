@@ -6,7 +6,7 @@
 use crate::{Result, MarlinError, iop::*, r1cs::*, prover::*, verifier::*};
 use zkp_field::{Scalar, polynomial::{PolynomialOps, DensePolynomial}, fft::FftDomain};
 use zkp_commitments::{CommitmentEngine, CommitmentError};
-use ark_ff::{Zero, One, Field, UniformRand};
+use ark_ff::{Zero, One, UniformRand};
 use ark_std::rand::Rng;
 use std::marker::PhantomData;
 
@@ -157,10 +157,10 @@ impl<E: CommitmentEngine> MarlinSetup<E> {
         let proving_key = self.generate_proving_key(srs, r1cs.clone(), domain)?;
 
         // Generate verification key
-        let verification_key = self.generate_verification_key(srs, r1cs, &domain)?;
+        let verification_key = self.generate_verification_key(srs, r1cs, domain)?;
 
         // Precompute polynomial commitments
-        let preprocessed_commitments = self.precompute_commitments(srs, r1cs, &domain)?;
+        let preprocessed_commitments = self.precompute_commitments(srs, r1cs, domain)?;
 
         Ok(MarlinPreprocessingKey {
             srs: srs.clone(),
@@ -230,7 +230,7 @@ impl<E: CommitmentEngine> MarlinSetup<E> {
         // Generate verification elements (simplified)
         let mut verification_elements = Vec::new();
         for _ in 0..10 { // Generate 10 verification elements
-            verification_elements.push(Scalar::rand(rng));
+            verification_elements.push(UniformRand::rand(rng));
         }
 
         // Generate Lagrange coefficients for common evaluation points
@@ -281,7 +281,7 @@ impl<E: CommitmentEngine> MarlinSetup<E> {
         &self,
         srs: &MarlinSRS<E>,
         r1cs: &R1CS,
-        domain: &FftDomain,
+        domain: FftDomain,
     ) -> Result<MarlinVerifyingKey<E>> {
         // Extract public R1CS matrices
         let r1cs_matrices = PublicR1CSMatrices::from_r1cs(r1cs);
@@ -304,9 +304,9 @@ impl<E: CommitmentEngine> MarlinSetup<E> {
         &self,
         srs: &MarlinSRS<E>,
         r1cs: &R1CS,
-        domain: &FftDomain,
+        domain: FftDomain,
     ) -> Result<PreprocessedCommitments<E>> {
-        let encoding = r1cs.to_polynomial_encoding(domain)?;
+        let encoding = r1cs.to_polynomial_encoding(&domain)?;
 
         // Commit to selector polynomials
         let mut selector_commitments = Vec::new();
@@ -484,7 +484,7 @@ impl<E: CommitmentEngine> MPCSetup<E> {
         rng: &mut R,
     ) -> Result<()> {
         // Generate participant's randomness
-        let contribution = Scalar::rand(rng);
+        let contribution = UniformRand::rand(rng);
         self.accumulated_randomness.push(contribution);
 
         // Update transcript

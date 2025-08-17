@@ -6,7 +6,7 @@
 use crate::{Result, MarlinError, iop::*, r1cs::*, prover::*};
 use zkp_field::{Scalar, polynomial::{PolynomialOps, DensePolynomial}, fft::FftDomain};
 use zkp_commitments::{CommitmentEngine, CommitmentError};
-use ark_ff::{Zero, One, Field, UniformRand};
+use ark_ff::{Zero, UniformRand};
 use ark_std::rand::Rng;
 use std::marker::PhantomData;
 
@@ -464,7 +464,7 @@ impl<E: CommitmentEngine> MarlinBatchVerifier<E> {
         // Generate batch randomness
         self.batch_randomness.clear();
         for _ in 0..proofs.len() {
-            self.batch_randomness.push(Scalar::rand(rng));
+            self.batch_randomness.push(UniformRand::rand(rng));
         }
 
         // Aggregate verification equations (simplified implementation)
