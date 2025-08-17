@@ -1,8 +1,10 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+//! Main benchmark file for Groth16 components.
 
-fn benchmark_placeholder(_c: &mut Criterion) {
-    // TODO: Implement benchmarks
+use groth16_benchmarks::*;
+
+criterion::criterion_main! {
+    bench_field_operations,
+    bench_r1cs, 
+    bench_qap_conversion,
+    bench_trusted_setup
 }
-
-criterion_group!(benches, benchmark_placeholder);
-criterion_main!(benches);

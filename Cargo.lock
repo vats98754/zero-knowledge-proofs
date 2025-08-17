@@ -490,6 +490,7 @@ name = "groth16-examples"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "ark-poly",
  "groth16-core",
  "groth16-field",
  "groth16-qap",

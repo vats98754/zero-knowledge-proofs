@@ -10,6 +10,7 @@ groth16-r1cs = { path = "../groth16-r1cs" }
 groth16-qap = { path = "../groth16-qap" }
 groth16-setup = { path = "../groth16-setup" }
 groth16-core = { path = "../groth16-core" }
+ark-poly.workspace = true
 rand.workspace = true
 anyhow.workspace = true
 

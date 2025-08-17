@@ -1,6 +1,7 @@
 //! CLI main entry point for Groth16 operations.
 
 use clap::{Parser, Subcommand};
+use groth16_cli::{generate_crs, generate_proof, verify_proof};
 
 #[derive(Parser)]
 #[command(name = "groth16-cli")]
@@ -18,13 +19,13 @@ enum Commands {
         #[arg(short, long)]
         num_constraints: usize,
         
-        /// Output file for the CRS
+        /// Output file prefix for the CRS
         #[arg(short, long)]
         output: String,
     },
     /// Generate a proof
     Prove {
-        /// CRS file
+        /// CRS file prefix (will look for {crs}_pk.json)
         #[arg(short, long)]
         crs: String,
         
@@ -61,21 +62,15 @@ fn main() -> anyhow::Result<()> {
     
     match cli.command {
         Commands::GenerateCrs { num_constraints, output } => {
-            println!("Generating CRS for {} constraints, output: {}", num_constraints, output);
-            // TODO: Implement CRS generation
-            Ok(())
+            generate_crs(num_constraints, &output)?;
         }
         Commands::Prove { crs, circuit, witness, output } => {
-            println!("Proving with CRS: {}, circuit: {}, witness: {}, output: {}", 
-                     crs, circuit, witness, output);
-            // TODO: Implement proving
-            Ok(())
+            generate_proof(&crs, &circuit, &witness, &output)?;
         }
         Commands::Verify { vk, public_inputs, proof } => {
-            println!("Verifying with VK: {}, public inputs: {}, proof: {}", 
-                     vk, public_inputs, proof);
-            // TODO: Implement verification
-            Ok(())
+            verify_proof(&vk, &public_inputs, &proof)?;
         }
     }
+    
+    Ok(())
 }

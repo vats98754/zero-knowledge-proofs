@@ -1,0 +1,1 @@
+R1CS<ark_ff::fields::models::fp::Fp<ark_ff::fields::models::fp::montgomery_backend::MontBackend<ark_bls12_381::fields::fr::FrConfig, 4>, 4>>
