@@ -1,0 +1,17 @@
+[package]
+name = "plonk-examples"
+version = "0.1.0"
+edition = "2021"
+description = "PLONK examples and test circuits"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+plonk-field = { path = "../field" }
+plonk-pc = { path = "../pc" }
+plonk-arith = { path = "../plonk-arith" }
+plonk-prover = { path = "../plonk-prover" }
+plonk-verifier = { path = "../plonk-verifier" }
+ark-ff.workspace = true
+ark-std.workspace = true
+rand.workspace = true
+anyhow.workspace = true

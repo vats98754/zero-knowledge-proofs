@@ -1,0 +1,9 @@
+[package]
+name = "plonk-prove"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+plonk-prover = { path = "../../crates/plonk-prover" }
+clap.workspace = true
+anyhow.workspace = true

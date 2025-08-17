@@ -1,0 +1,23 @@
+[package]
+name = "plonk-pc"
+version = "0.1.0"
+edition = "2021"
+description = "Polynomial commitment schemes for PLONK (KZG and IPA)"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+plonk-field = { path = "../field" }
+ark-ff.workspace = true
+ark-ec.workspace = true
+ark-poly.workspace = true
+ark-poly-commit.workspace = true
+ark-bls12-381.workspace = true
+ark-serialize.workspace = true
+ark-std.workspace = true
+rand.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+sha3.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
