@@ -18,21 +18,21 @@ pub enum Column {
 }
 
 /// Advice column containing private witness data
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AdviceColumn {
     /// Index of this advice column
     pub index: usize,
 }
 
 /// Fixed column containing circuit constants
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct FixedColumn {
     /// Index of this fixed column
     pub index: usize,
 }
 
 /// Instance column containing public inputs/outputs
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct InstanceColumn {
     /// Index of this instance column
     pub index: usize,

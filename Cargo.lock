@@ -346,6 +346,7 @@ dependencies = [
 name = "halo-benches"
 version = "0.1.0"
 dependencies = [
+ "bls12_381",
  "commitments",
  "criterion",
  "ff",
@@ -383,6 +384,7 @@ name = "halo-examples"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bls12_381",
  "commitments",
  "ff",
  "group",

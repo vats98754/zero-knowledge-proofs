@@ -24,3 +24,6 @@ rand.workspace = true
 
 # Benchmarking
 criterion.workspace = true
+
+# For benchmarks
+bls12_381.workspace = true
