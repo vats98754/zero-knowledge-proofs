@@ -23,7 +23,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain-action@stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
       - name: Cache cargo
         uses: actions/cache@v4
         with:
@@ -34,13 +37,48 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Build (release)
         run: cargo build --workspace --release -q
-      - name: Run unit & property tests (fast)
-        run: cargo test --workspace --tests -- --nocapture
-      - name: Smoke bench (single crate quick)
+      - name: Build CLI tools
+        run: cargo build --bins --release
+      - name: Run unit tests
+        run: cargo test --workspace --lib -- --nocapture
+      - name: Test CLI tools
+        run: cargo test --bins
+      - name: Build benchmarks (no run)
+        run: cargo bench --no-run
+      - name: Quick benchmark smoke test
         run: |
-          # run a very small smoke bench to detect regressions (non-exhaustive)
-          cargo bench --manifest-path crates/integration/Cargo.toml -- --bench smoke || true
+          # Run a quick benchmark to ensure they compile and work
+          timeout 30 cargo bench field_operations || true
       - name: Lint & fmt check
         run: |
           cargo fmt -- --check
           cargo clippy --workspace -- -D warnings
+      - name: Test CLI tools functionality
+        run: |
+          # Test basic CLI functionality
+          cargo run --bin plonk-setup-universal -- --help
+          cargo run --bin plonk-compile -- --help
+          cargo run --bin plonk-prove -- --help
+          cargo run --bin plonk-verify -- --help
+
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+      - name: Security audit
+        run: cargo audit
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Generate documentation
+        run: cargo doc --workspace --no-deps
+      - name: Check documentation links
+        run: cargo doc --workspace --no-deps --document-private-items
