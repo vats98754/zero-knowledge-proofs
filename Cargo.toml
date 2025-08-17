@@ -1,0 +1,44 @@
+[workspace]
+members = [
+    "crates/r1cs",
+    "crates/qap", 
+    "crates/setup",
+    "crates/groth16",
+    "crates/integration",
+]
+resolver = "2"
+
+[workspace.dependencies]
+# Arkworks ecosystem for BLS12-381 and cryptographic primitives
+ark-bls12-381 = "0.4"
+ark-ec = "0.4"
+ark-ff = "0.4"
+ark-poly = "0.4"
+ark-std = "0.4"
+ark-serialize = "0.4"
+
+# Random number generation
+rand = "0.8"
+rand_chacha = "0.3"
+
+# Error handling and utilities
+thiserror = "1.0"
+anyhow = "1.0"
+
+# CLI and IO
+clap = { version = "4.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Testing and benchmarking
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.0"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.bench]
+inherits = "release"
+debug = true

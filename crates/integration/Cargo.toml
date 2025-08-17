@@ -1,0 +1,33 @@
+[package]
+name = "integration"
+version = "0.1.0"
+edition = "2021"
+description = "Integration tests and examples for the zero-knowledge proof system"
+license = "MIT"
+
+[dependencies]
+r1cs = { path = "../r1cs" }
+qap = { path = "../qap" }
+setup = { path = "../setup" }
+groth16 = { path = "../groth16" }
+ark-bls12-381 = { workspace = true }
+ark-ec = { workspace = true }
+ark-ff = { workspace = true }
+ark-std = { workspace = true }
+rand = { workspace = true }
+clap = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+rand_chacha = { workspace = true }
+criterion = { workspace = true }
+
+[[bench]]
+name = "end_to_end"
+harness = false
+
+[[bin]]
+name = "zkp-cli"
+path = "src/bin/cli.rs"

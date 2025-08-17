@@ -1,0 +1,17 @@
+[package]
+name = "r1cs"
+version = "0.1.0"
+edition = "2021"
+description = "R1CS (Rank-1 Constraint System) implementation for zero-knowledge proofs"
+license = "MIT"
+
+[dependencies]
+ark-ff = { workspace = true }
+ark-std = { workspace = true }
+ark-serialize = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+
+[dev-dependencies]
+ark-bls12-381 = { workspace = true }
+proptest = { workspace = true }
