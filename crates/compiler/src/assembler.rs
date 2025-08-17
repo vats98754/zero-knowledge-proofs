@@ -59,6 +59,13 @@ impl Assembler {
     }
 
     fn parse_instruction(&self, line: &str) -> Result<Instruction> {
+        // Remove inline comments
+        let line = if let Some(comment_pos) = line.find('#') {
+            &line[..comment_pos]
+        } else {
+            line
+        };
+        
         let parts: Vec<&str> = line.split_whitespace().collect();
         if parts.is_empty() {
             return Err(CompilerError::ParseError("Empty instruction".to_string()));

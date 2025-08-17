@@ -1,5 +1,4 @@
 use compiler::compile_to_trace;
-use zkvm_core::{ZkVm, Instruction};
 
 pub mod token_contract;
 
@@ -10,9 +9,9 @@ pub fn arithmetic_example() -> anyhow::Result<()> {
     let assembly = r#"
         # Simple arithmetic: compute 10 + 20 * 5
         # R0 = 10, R1 = 20, R2 = 5
-        ADD R3, R0, R1  # R3 = 30
-        MUL R4, R1, R2  # R4 = 100  
-        ADD R5, R3, R4  # R5 = 130
+        ADD R3, R0, R1
+        MUL R4, R1, R2
+        ADD R5, R3, R4
         HALT
     "#;
 
@@ -33,10 +32,11 @@ pub fn fibonacci_example() -> anyhow::Result<()> {
         # (Assume registers are pre-loaded with initial values)
         
     loop:
-        JZ R0, done     # if n == 0, done
-        ADD R3, R1, R2  # temp = a + b
-        SUB R0, R0, #1  # n = n - 1
-        # Move values: a = b, b = temp
+        JZ R0, done
+        ADD R3, R1, R2
+        ADD R1, R2, R4
+        ADD R2, R3, R4
+        SUB R0, R0, R7
         JUMP loop
         
     done:
@@ -89,6 +89,12 @@ mod tests {
 
     #[test]
     fn test_memory_example() {
-        assert!(memory_example().is_ok());
+        match memory_example() {
+            Ok(_) => (),
+            Err(e) => {
+                println!("Error: {:?}", e);
+                panic!("memory_example failed: {}", e);
+            }
+        }
     }
 }

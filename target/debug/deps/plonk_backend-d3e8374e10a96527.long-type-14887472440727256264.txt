@@ -1,1 +1,0 @@
-ark_ec::bn::G1Prepared<ark_bn254::Config>: From<ark_ff::Fp<MontBackend<FrConfig, 4>, 4>>
