@@ -1,0 +1,20 @@
+[package]
+name = "benches"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Benchmarks for Bulletproofs implementations"
+
+[dependencies]
+bulletproofs-core = { path = "../bulletproofs-core" }
+ipa = { path = "../ipa" }
+range = { path = "../range" }
+curve25519-dalek.workspace = true
+criterion.workspace = true
+rand.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true

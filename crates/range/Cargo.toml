@@ -1,0 +1,23 @@
+[package]
+name = "range"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Range proofs using Bulletproofs inner product argument"
+
+[dependencies]
+bulletproofs-core = { path = "../bulletproofs-core" }
+ipa = { path = "../ipa" }
+curve25519-dalek.workspace = true
+merlin.workspace = true
+rand.workspace = true
+rand_core.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+rayon.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
