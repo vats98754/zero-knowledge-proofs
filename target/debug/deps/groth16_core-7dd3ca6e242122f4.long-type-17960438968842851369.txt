@@ -1,0 +1,2 @@
+(ark_ec::short_weierstrass::Affine<ark_bls12_381::g1::Config>, ark_ec::short_weierstrass::Affine<ark_bls12_381::g2::Config>)
+ark_ec::bls12::G1Prepared<ark_bls12_381::Config>: From<(ark_ec::short_weierstrass::Affine<ark_bls12_381::g1::Config>, ark_ec::short_weierstrass::Affine<ark_bls12_381::g2::Config>)>

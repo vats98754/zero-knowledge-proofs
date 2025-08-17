@@ -10,6 +10,7 @@ groth16-r1cs = { path = "../groth16-r1cs" }
 groth16-qap = { path = "../groth16-qap" }
 ark-ff.workspace = true
 ark-ec.workspace = true
+ark-poly.workspace = true
 ark-bls12-381.workspace = true
 ark-serialize.workspace = true
 ark-std.workspace = true
