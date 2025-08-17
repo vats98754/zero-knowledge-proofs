@@ -1,21 +1,22 @@
 //! Commitment scheme traits and interfaces
 
-use crate::{Result, CommitmentError};
+use crate::CommitmentError;
 use zkp_field::Scalar;
-use ark_ec::{Group, CurveGroup};
-use ark_serialize::{CanonicalSerialize, CanonicalDeserialize};
+use ark_ec::CurveGroup;
 use ark_std::rand::Rng;
+
+type Result<T> = std::result::Result<T, CommitmentError>;
 
 /// Trait for polynomial commitment schemes
 pub trait CommitmentEngine: Clone + Send + Sync {
     /// Type representing a commitment to a polynomial
-    type Commitment: Clone + CanonicalSerialize + CanonicalDeserialize;
+    type Commitment: Clone;
     
     /// Type representing a commitment opening proof
-    type Opening: Clone + CanonicalSerialize + CanonicalDeserialize;
+    type Opening: Clone;
     
     /// Type representing commitment parameters (e.g., SRS)
-    type Parameters: Clone + CanonicalSerialize + CanonicalDeserialize;
+    type Parameters: Clone;
     
     /// Type representing a randomness value used in commitments
     type Randomness: Clone + Default;
@@ -96,7 +97,7 @@ pub trait BoundedCommitmentEngine: CommitmentEngine {
 /// Trait for commitment schemes with aggregation support
 pub trait AggregateCommitmentEngine: CommitmentEngine {
     /// Type representing an aggregated opening proof
-    type AggregateOpening: Clone + CanonicalSerialize + CanonicalDeserialize;
+    type AggregateOpening: Clone;
     
     /// Creates an aggregated opening for multiple polynomials at multiple points
     fn aggregate_open(
@@ -117,7 +118,7 @@ pub trait AggregateCommitmentEngine: CommitmentEngine {
 }
 
 /// Universal setup parameters for commitment schemes
-#[derive(Clone, Debug, CanonicalSerialize, CanonicalDeserialize)]
+#[derive(Clone, Debug)]
 pub struct UniversalParams<G: CurveGroup> {
     /// Powers of the secret in the first group
     pub g_powers: Vec<G>,
@@ -157,7 +158,7 @@ impl<G: CurveGroup> UniversalParams<G> {
 }
 
 /// Commitment key for polynomial commitments
-#[derive(Clone, Debug, CanonicalSerialize, CanonicalDeserialize)]
+#[derive(Clone, Debug)]
 pub struct CommitmentKey<G: CurveGroup> {
     /// Powers of the secret for commitments
     pub powers: Vec<G>,
@@ -166,7 +167,7 @@ pub struct CommitmentKey<G: CurveGroup> {
 }
 
 /// Verification key for polynomial commitments
-#[derive(Clone, Debug, CanonicalSerialize, CanonicalDeserialize)]
+#[derive(Clone, Debug)]
 pub struct VerificationKey<G: CurveGroup> {
     /// Generator in the first group
     pub g: G,
@@ -178,7 +179,6 @@ pub struct VerificationKey<G: CurveGroup> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     
     #[test]
     fn test_universal_params_trim() {

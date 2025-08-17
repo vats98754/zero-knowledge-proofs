@@ -12,7 +12,6 @@ pub use traits::*;
 pub use kzg::*;
 pub use kate::*;
 
-use zkp_field::Scalar;
 use thiserror::Error;
 
 /// Error types for commitment operations

@@ -2,8 +2,9 @@
 
 use crate::{Result, CommitmentError};
 use zkp_field::{Scalar, polynomial::PolynomialOps, batch::BatchOps};
-use ark_ec::{CurveGroup, Group, VariableBaseMSM};
-use ark_ff::{Zero, One, Field};
+use ark_ec::CurveGroup;
+use ark_ff::{Zero, One, Field, UniformRand, PrimeField, BigInteger};
+use ark_poly::polynomial::DenseUVPolynomial;
 use ark_std::rand::Rng;
 use rayon::prelude::*;
 use blake2::{Blake2s256, Digest};
@@ -36,9 +37,9 @@ impl FiatShamirTranscript {
     
     /// Appends a curve point to the transcript
     pub fn append_point<G: CurveGroup>(&mut self, label: &[u8], point: &G) {
-        let mut bytes = Vec::new();
-        point.serialize_compressed(&mut bytes).unwrap();
-        self.append_message(label, &bytes);
+        // Convert to bytes using a simple approach
+        let point_str = format!("{:?}", point);
+        self.append_message(label, point_str.as_bytes());
     }
     
     /// Generates a challenge from the current transcript
@@ -46,7 +47,7 @@ impl FiatShamirTranscript {
         self.append_message(label, b"challenge");
         let hash = self.hasher.finalize_reset();
         
-        // Convert hash to field element
+        // Convert hash to field element using proper API
         let mut bytes = [0u8; 32];
         bytes.copy_from_slice(&hash[..32]);
         Scalar::from_le_bytes_mod_order(&bytes)
@@ -67,8 +68,8 @@ pub struct MsmUtils;
 
 impl MsmUtils {
     /// Performs parallel MSM computation
-    pub fn parallel_msm<G: CurveGroup>(
-        bases: &[G],
+    pub fn parallel_msm<G: CurveGroup<ScalarField = Scalar>>(
+        bases: &[G::Affine],
         scalars: &[Scalar],
         chunk_size: Option<usize>,
     ) -> Result<G> {
@@ -99,10 +100,10 @@ impl MsmUtils {
     }
     
     /// Computes MSM with preprocessing for repeated base sets
-    pub fn msm_with_precomputation<G: CurveGroup>(
-        bases: &[G],
+    pub fn msm_with_precomputation<G: CurveGroup<ScalarField = Scalar>>(
+        bases: &[G::Affine],
         scalars: &[Scalar],
-        precomputed_tables: Option<&[G]>, // Placeholder for precomputation
+        _precomputed_tables: Option<&[G]>, // Placeholder for precomputation
     ) -> Result<G> {
         // In a full implementation, this would use precomputed tables
         // For now, fall back to regular MSM
@@ -163,7 +164,7 @@ impl InterpolationUtils {
             .collect();
         
         let poly = PolynomialOps::interpolate(&point_value_pairs)?;
-        Ok(poly.coeffs().to_vec())
+        Ok(poly.coeffs.to_vec())
     }
     
     /// Batch Lagrange coefficient computation
@@ -217,8 +218,8 @@ impl VanishingPolynomialUtils {
     /// Computes the vanishing polynomial's derivative
     pub fn vanishing_polynomial_derivative(points: &[Scalar]) -> Vec<Scalar> {
         let vanishing = Self::vanishing_polynomial(points);
-        PolynomialOps::derivative(&zkp_field::polynomial::DensePolynomial::from_coefficients_vec(vanishing))
-            .coeffs()
+        PolynomialOps::derivative(&zkp_field::polynomial::DensePolynomial::from_coefficients_slice(&vanishing))
+            .coeffs
             .to_vec()
     }
     
@@ -243,7 +244,7 @@ impl BatchVerificationUtils {
     }
     
     /// Combines multiple commitments using random challenges
-    pub fn combine_commitments<G: CurveGroup>(
+    pub fn combine_commitments<G: CurveGroup<ScalarField = Scalar>>(
         commitments: &[G],
         challenges: &[Scalar],
     ) -> Result<G> {
@@ -251,7 +252,9 @@ impl BatchVerificationUtils {
             return Err(CommitmentError::InvalidParameters);
         }
         
-        MsmUtils::parallel_msm(commitments, challenges, None)
+        // Convert commitments to affine for MSM
+        let affine_commitments: Vec<G::Affine> = commitments.iter().map(|c| c.into_affine()).collect();
+        MsmUtils::parallel_msm(&affine_commitments, challenges, None)
     }
     
     /// Combines multiple scalars using the same challenges
@@ -267,7 +270,7 @@ impl BatchVerificationUtils {
     }
     
     /// Verifies multiple openings by combining them
-    pub fn batch_verify_openings<G: CurveGroup>(
+    pub fn batch_verify_openings<G: CurveGroup<ScalarField = Scalar>>(
         commitments: &[G],
         points: &[Scalar],
         values: &[Scalar],
@@ -334,6 +337,7 @@ mod tests {
     use super::*;
     use ark_std::test_rng;
     use ark_bls12_381::G1Projective;
+    use ark_ec::VariableBaseMSM;
     
     #[test]
     fn test_fiat_shamir_transcript() {
@@ -372,7 +376,7 @@ mod tests {
         
         // Verify that the vanishing polynomial evaluates to zero at all points
         for &point in &points {
-            let poly = zkp_field::polynomial::DensePolynomial::from_coefficients_vec(vanishing.clone());
+            let poly = zkp_field::polynomial::DensePolynomial::from_coefficients_slice(&vanishing);
             let value = PolynomialOps::evaluate(&poly, &point);
             assert_eq!(value, Scalar::zero());
         }
@@ -386,8 +390,11 @@ mod tests {
         let bases: Vec<G1Projective> = (0..n).map(|_| G1Projective::rand(&mut rng)).collect();
         let scalars: Vec<Scalar> = (0..n).map(|_| Scalar::rand(&mut rng)).collect();
         
-        let result1 = MsmUtils::parallel_msm(&bases, &scalars, Some(10)).unwrap();
-        let result2 = G1Projective::msm(&bases, &scalars).unwrap();
+        // Convert to affine for MSM
+        let affine_bases: Vec<_> = bases.iter().map(|p| p.into_affine()).collect();
+        
+        let result1: G1Projective = MsmUtils::parallel_msm(&affine_bases, &scalars, Some(10)).unwrap();
+        let result2 = G1Projective::msm(&affine_bases, &scalars).unwrap();
         
         assert_eq!(result1, result2);
     }

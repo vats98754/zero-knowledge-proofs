@@ -2,12 +2,12 @@
 
 use crate::{traits::*, Result, CommitmentError};
 use zkp_field::{Scalar, polynomial::PolynomialOps};
-use ark_ec::{CurveGroup, Group, VariableBaseMSM};
-use ark_bls12_381::{G1Projective, G2Projective, Bls12_381};
+use ark_ec::{Group, VariableBaseMSM, CurveGroup};
+use ark_bls12_381::{G1Projective, G2Projective, G1Affine, Bls12_381};
 use ark_ec::pairing::Pairing;
-use ark_ff::{Zero, One, UniformRand, Field};
+use ark_ff::{Zero, One, UniformRand};
+use ark_poly::polynomial::DenseUVPolynomial;
 use ark_std::rand::Rng;
-use ark_serialize::{CanonicalSerialize, CanonicalDeserialize};
 use rayon::prelude::*;
 
 /// KZG commitment using BLS12-381
@@ -15,7 +15,7 @@ use rayon::prelude::*;
 pub struct KzgCommitmentEngine;
 
 /// KZG commitment parameters
-#[derive(Clone, Debug, CanonicalSerialize, CanonicalDeserialize)]
+#[derive(Clone, Debug)]
 pub struct KzgParams {
     /// Powers of the secret in G1
     pub g1_powers: Vec<G1Projective>,
@@ -26,11 +26,11 @@ pub struct KzgParams {
 }
 
 /// KZG commitment (point in G1)
-#[derive(Clone, Debug, CanonicalSerialize, CanonicalDeserialize)]
+#[derive(Clone, Debug)]
 pub struct KzgCommitment(pub G1Projective);
 
 /// KZG opening proof (point in G1)
-#[derive(Clone, Debug, CanonicalSerialize, CanonicalDeserialize)]
+#[derive(Clone, Debug)]
 pub struct KzgOpening(pub G1Projective);
 
 /// KZG randomness (not used in basic KZG)
@@ -78,8 +78,10 @@ impl CommitmentEngine for KzgCommitmentEngine {
         }
         
         // Compute commitment as sum(coeff_i * g^(s^i))
+        let affine_bases: Vec<G1Affine> = params.g1_powers[..coefficients.len()]
+            .iter().map(|p| p.into_affine()).collect();
         let commitment = G1Projective::msm(
-            &params.g1_powers[..coefficients.len()],
+            &affine_bases,
             coefficients,
         ).map_err(|_| CommitmentError::InvalidParameters)?;
         
@@ -121,8 +123,10 @@ impl CommitmentEngine for KzgCommitmentEngine {
         }
         
         // Compute proof as commitment to quotient polynomial
+        let affine_bases: Vec<G1Affine> = params.g1_powers[..quotient.coeffs().len()]
+            .iter().map(|p| p.into_affine()).collect();
         let proof = G1Projective::msm(
-            &params.g1_powers[..quotient.coeffs().len()],
+            &affine_bases,
             quotient.coeffs(),
         ).map_err(|_| CommitmentError::InvalidParameters)?;
         
@@ -239,7 +243,9 @@ impl KzgMsm {
             return Err(CommitmentError::InvalidParameters);
         }
         
-        G1Projective::msm(bases, scalars)
+        // Convert to affine for MSM
+        let affine_bases: Vec<G1Affine> = bases.iter().map(|p| p.into_affine()).collect();
+        G1Projective::msm(&affine_bases, scalars)
             .map_err(|_| CommitmentError::InvalidParameters)
     }
     

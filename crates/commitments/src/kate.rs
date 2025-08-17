@@ -1,13 +1,13 @@
 //! Kate polynomial commitment scheme with batch opening support
 
 use crate::{traits::*, Result, CommitmentError};
-use zkp_field::{Scalar, polynomial::PolynomialOps, batch::BatchOps};
-use ark_ec::{CurveGroup, Group, VariableBaseMSM};
-use ark_bls12_381::{G1Projective, G2Projective, Bls12_381};
+use zkp_field::{Scalar, polynomial::PolynomialOps};
+use ark_ec::{Group, VariableBaseMSM, CurveGroup};
+use ark_bls12_381::{G1Projective, G2Projective, G1Affine, Bls12_381};
 use ark_ec::pairing::Pairing;
 use ark_ff::{Zero, One, UniformRand, Field};
+use ark_poly::polynomial::DenseUVPolynomial;
 use ark_std::rand::Rng;
-use ark_serialize::{CanonicalSerialize, CanonicalDeserialize};
 use rayon::prelude::*;
 use std::collections::HashMap;
 
@@ -16,7 +16,7 @@ use std::collections::HashMap;
 pub struct KateCommitmentEngine;
 
 /// Kate commitment parameters (extends KZG with additional structure)
-#[derive(Clone, Debug, CanonicalSerialize, CanonicalDeserialize)]
+#[derive(Clone, Debug)]
 pub struct KateParams {
     /// Powers of the secret in G1 for commitments
     pub g1_powers: Vec<G1Projective>,
@@ -29,11 +29,11 @@ pub struct KateParams {
 }
 
 /// Kate commitment (same as KZG)
-#[derive(Clone, Debug, CanonicalSerialize, CanonicalDeserialize)]
+#[derive(Clone, Debug)]
 pub struct KateCommitment(pub G1Projective);
 
 /// Kate opening proof with batch support
-#[derive(Clone, Debug, CanonicalSerialize, CanonicalDeserialize)]
+#[derive(Clone, Debug)]
 pub struct KateOpening {
     /// Main proof element
     pub proof: G1Projective,
@@ -42,7 +42,7 @@ pub struct KateOpening {
 }
 
 /// Kate aggregate opening for multiple points
-#[derive(Clone, Debug, CanonicalSerialize, CanonicalDeserialize)]
+#[derive(Clone, Debug)]
 pub struct KateAggregateOpening {
     /// Aggregated proof
     pub proof: G1Projective,
@@ -105,19 +105,23 @@ impl CommitmentEngine for KateCommitmentEngine {
     fn commit(
         params: &Self::Parameters,
         coefficients: &[Scalar],
-        randomness: Option<&Self::Randomness>,
+        _randomness: Option<&Self::Randomness>,
     ) -> Result<Self::Commitment> {
         if coefficients.len() > params.max_degree + 1 {
             return Err(CommitmentError::DegreeBoundExceeded);
         }
         
+        // Convert to affine for MSM efficiency
+        let affine_bases: Vec<G1Affine> = params.g1_powers[..coefficients.len()]
+            .iter().map(|p| p.into_affine()).collect();
+        
         let mut commitment = G1Projective::msm(
-            &params.g1_powers[..coefficients.len()],
+            &affine_bases,
             coefficients,
         ).map_err(|_| CommitmentError::InvalidParameters)?;
         
         // Add blinding if randomness is provided
-        if let Some(rand) = randomness {
+        if let Some(rand) = _randomness {
             if let Some(blinding) = rand.blinding_factor {
                 // Add random element (would need additional setup for proper hiding)
                 commitment += params.g1_powers[0] * blinding;
@@ -131,7 +135,7 @@ impl CommitmentEngine for KateCommitmentEngine {
         params: &Self::Parameters,
         coefficients: &[Scalar],
         point: &Scalar,
-        randomness: Option<&Self::Randomness>,
+        _randomness: Option<&Self::Randomness>,
     ) -> Result<Self::Opening> {
         if coefficients.len() > params.max_degree + 1 {
             return Err(CommitmentError::DegreeBoundExceeded);
@@ -145,8 +149,10 @@ impl CommitmentEngine for KateCommitmentEngine {
         let quotient_coeffs = Self::compute_quotient_polynomial(coefficients, point, &value)?;
         
         // Compute main proof
+        let affine_bases: Vec<G1Affine> = params.g1_powers[..quotient_coeffs.len()]
+            .iter().map(|p| p.into_affine()).collect();
         let proof = G1Projective::msm(
-            &params.g1_powers[..quotient_coeffs.len()],
+            &affine_bases,
             &quotient_coeffs,
         ).map_err(|_| CommitmentError::InvalidParameters)?;
         
@@ -185,12 +191,12 @@ impl CommitmentEngine for KateCommitmentEngine {
     fn batch_commit(
         params: &Self::Parameters,
         polynomials: &[&[Scalar]],
-        randomness: Option<&[Self::Randomness]>,
+        _randomness: Option<&[Self::Randomness]>,
     ) -> Result<Vec<Self::Commitment>> {
         polynomials.par_iter()
             .enumerate()
             .map(|(i, coeffs)| {
-                let rand = randomness.and_then(|r| r.get(i));
+                let rand = _randomness.and_then(|r| r.get(i));
                 Self::commit(params, coeffs, rand)
             })
             .collect()
@@ -200,7 +206,7 @@ impl CommitmentEngine for KateCommitmentEngine {
         params: &Self::Parameters,
         polynomials: &[&[Scalar]],
         point: &Scalar,
-        randomness: Option<&[Self::Randomness]>,
+        _randomness: Option<&[Self::Randomness]>,
     ) -> Result<Self::Opening> {
         if polynomials.is_empty() {
             return Err(CommitmentError::InvalidParameters);
@@ -227,8 +233,10 @@ impl CommitmentEngine for KateCommitmentEngine {
             }
             
             // Individual proof for this polynomial
+            let affine_bases: Vec<G1Affine> = params.g1_powers[..quotient_coeffs.len()]
+                .iter().map(|p| p.into_affine()).collect();
             let individual_proof = G1Projective::msm(
-                &params.g1_powers[..quotient_coeffs.len()],
+                &affine_bases,
                 &quotient_coeffs,
             ).map_err(|_| CommitmentError::InvalidParameters)?;
             
@@ -236,8 +244,10 @@ impl CommitmentEngine for KateCommitmentEngine {
         }
         
         // Compute combined proof
+        let affine_bases: Vec<G1Affine> = params.g1_powers[..combined_quotient.len()]
+            .iter().map(|p| p.into_affine()).collect();
         let proof = G1Projective::msm(
-            &params.g1_powers[..combined_quotient.len()],
+            &affine_bases,
             &combined_quotient,
         ).map_err(|_| CommitmentError::InvalidParameters)?;
         
@@ -281,7 +291,7 @@ impl AggregateCommitmentEngine for KateCommitmentEngine {
         params: &Self::Parameters,
         polynomials: &[&[Scalar]],
         points: &[Scalar],
-        _randomness: Option<&[Self::Randomness]>,
+        __randomness: Option<&[Self::Randomness]>,
     ) -> Result<Self::AggregateOpening> {
         if polynomials.len() != points.len() || polynomials.is_empty() {
             return Err(CommitmentError::InvalidParameters);
@@ -314,8 +324,10 @@ impl AggregateCommitmentEngine for KateCommitmentEngine {
         }
         
         // Compute aggregated proof
+        let affine_bases: Vec<G1Affine> = params.g1_powers[..aggregated_quotient.len()]
+            .iter().map(|p| p.into_affine()).collect();
         let proof = G1Projective::msm(
-            &params.g1_powers[..aggregated_quotient.len()],
+            &affine_bases,
             &aggregated_quotient,
         ).map_err(|_| CommitmentError::InvalidParameters)?;
         
@@ -343,7 +355,7 @@ impl AggregateCommitmentEngine for KateCommitmentEngine {
         let mut aggregated_commitment = G1Projective::zero();
         let mut aggregated_value = Scalar::zero();
         
-        for (i, ((commitment, &point), &value)) in commitments.iter()
+        for (i, ((commitment, &_point), &value)) in commitments.iter()
             .zip(points.iter())
             .zip(values.iter())
             .enumerate() {
@@ -376,7 +388,7 @@ impl KateCommitmentEngine {
         point: &Scalar,
         value: &Scalar,
     ) -> Result<Vec<Scalar>> {
-        let polynomial = zkp_field::polynomial::DensePolynomial::from_coefficients_vec(coefficients.to_vec());
+        let _polynomial = zkp_field::polynomial::DensePolynomial::from_coefficients_slice(coefficients);
         
         // Create p(x) - p(z)
         let mut shifted_coeffs = coefficients.to_vec();
@@ -386,17 +398,17 @@ impl KateCommitmentEngine {
         
         // Divide by (x - z)
         let divisor = vec![-*point, Scalar::one()]; // (x - z)
-        let dividend = zkp_field::polynomial::DensePolynomial::from_coefficients_vec(shifted_coeffs);
-        let divisor_poly = zkp_field::polynomial::DensePolynomial::from_coefficients_vec(divisor);
+        let dividend = zkp_field::polynomial::DensePolynomial::from_coefficients_slice(&shifted_coeffs);
+        let divisor_poly = zkp_field::polynomial::DensePolynomial::from_coefficients_slice(&divisor);
         
         let (quotient, remainder) = PolynomialOps::long_division(&dividend, &divisor_poly)?;
         
         // Remainder should be zero
-        if !remainder.coeffs().iter().all(|c| c.is_zero()) {
+        if !remainder.coeffs.iter().all(|c| c.is_zero()) {
             return Err(CommitmentError::InvalidProof);
         }
         
-        Ok(quotient.coeffs().to_vec())
+        Ok(quotient.coeffs.to_vec())
     }
     
     /// Verifies multi-point opening using vanishing polynomial
