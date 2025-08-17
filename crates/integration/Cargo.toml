@@ -1,0 +1,27 @@
+[package]
+name = "integration"
+version = "0.1.0"
+edition = "2021"
+description = "Integration tests and benchmarks for zkVM"
+
+[dependencies]
+zkvm-core = { path = "../zkvm-core" }
+compiler = { path = "../compiler" }
+plonk-backend = { path = "../plonk-backend" }
+stark-backend = { path = "../stark-backend" }
+groth-backend = { path = "../groth-backend" }
+examples = { path = "../examples" }
+anyhow = { workspace = true }
+serde = { workspace = true }
+rand = { workspace = true }
+rand_chacha = { workspace = true }
+ark-std = { workspace = true }
+ark-bn254 = { workspace = true }
+criterion = { workspace = true, optional = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
+
+[features]
+default = []
+bench = ["criterion"]

@@ -1,0 +1,12 @@
+[package]
+name = "stark-backend"
+version = "0.1.0"
+edition = "2021"
+description = "STARK backend for zkVM proof generation"
+
+[dependencies]
+zkvm-core = { path = "../zkvm-core" }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+rand = { workspace = true }
