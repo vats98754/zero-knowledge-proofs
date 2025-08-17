@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - groth16
+      - plonk
+      - marlin
+      - stark
+      - halo
+      - bulletproofs
+      - nova
+      - spartan
+      - zkvm
+      - twist-and-shout
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain-action@stable
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Build (release)
+        run: cargo build --workspace --release -q
+      - name: Run unit & property tests (fast)
+        run: cargo test --workspace --tests -- --nocapture
+      - name: Smoke bench (single crate quick)
+        run: |
+          # run a very small smoke bench to detect regressions (non-exhaustive)
+          cargo bench --manifest-path crates/integration/Cargo.toml -- --bench smoke || true
+      - name: Lint & fmt check
+        run: |
+          cargo fmt -- --check
+          cargo clippy --workspace -- -D warnings
