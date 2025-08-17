@@ -4,15 +4,14 @@
 //! of the Halo/Halo2 proof system including commitment schemes, circuit
 //! operations, folding, and recursive verification.
 
-use criterion::{black_box, Criterion, BenchmarkId};
-use commitments::{IpaCommitmentEngine, CommitmentEngine, MultiScalarMultiplication};
-use halo_core::{Scalar, GroupElement};
+use criterion::black_box;
+use commitments::{IpaCommitmentEngine, msm::msm};
 use halo_recursion::{Accumulator, fold_proof, verify_recursive, FoldingProof, AccumulatorInstance};
-use halo2_arith::{CircuitBuilder, ColumnManager, AdviceColumn, FixedColumn, StandardGate};
+use halo2_arith::{CircuitBuilder, ColumnManager, StandardGate, circuit::CircuitConfig};
 use bls12_381::{G1Affine, G1Projective, Scalar as BlsScalar};
 use ff::Field;
 use group::{Curve, Group};
-use rand::{Rng, thread_rng};
+use rand::thread_rng;
 use std::time::{Instant, Duration};
 
 /// Benchmark configuration parameters
@@ -148,7 +147,7 @@ pub fn benchmark_commitments(config: &BenchmarkConfig) -> Vec<(usize, Duration)>
     println!("🔗 Benchmarking Commitment Operations...");
     
     let mut results = Vec::new();
-    let commitment_engine = IpaCommitmentEngine::new();
+    let _commitment_engine = IpaCommitmentEngine;
     
     for &size in &config.sizes {
         println!("   Testing size: {}", size);
@@ -166,7 +165,7 @@ pub fn benchmark_commitments(config: &BenchmarkConfig) -> Vec<(usize, Duration)>
         let start = Instant::now();
         for _ in 0..config.iterations {
             let _result = black_box(
-                MultiScalarMultiplication::multi_scalar_mult(&scalars, &points)
+                msm(&scalars, &points).unwrap()
             );
         }
         let avg_duration = start.elapsed() / config.iterations as u32;
@@ -192,20 +191,26 @@ pub fn benchmark_circuit_building(config: &BenchmarkConfig) -> Vec<(usize, Durat
         for _ in 0..config.iterations {
             // Build a circuit with the specified number of constraints
             let mut column_manager = ColumnManager::new();
-            let advice_col = AdviceColumn::new(0);
-            let fixed_col = FixedColumn::new(0);
+            let advice_col = column_manager.add_advice_column();
+            let fixed_col = column_manager.add_fixed_column();
+            let instance_col = column_manager.add_instance_column();
             
-            column_manager.add_advice_column(advice_col);
-            column_manager.add_fixed_column(fixed_col);
-            
-            let mut builder = CircuitBuilder::new(column_manager);
+            // Create circuit config and builder
+            let circuit_config = CircuitConfig::default();
+            let mut builder = CircuitBuilder::new(circuit_config);
             
             // Add multiple gates to simulate larger circuits
             for i in 0..size {
-                let gate_name = format!("gate_{}", i);
-                builder = black_box(
-                    builder.gate(StandardGate::new(gate_name)).unwrap()
-                );
+                // Create a simple standard gate for benchmarking
+                let a_col = advice_col.clone().into_column();
+                let b_col = advice_col.clone().into_column();  
+                let c_col = advice_col.clone().into_column();
+                let q_add_col = fixed_col.clone().into_column();
+                let q_mul_col = fixed_col.clone().into_column();
+                let q_const_col = fixed_col.clone().into_column();
+                
+                let gate = StandardGate::new(a_col, b_col, c_col, q_add_col, q_mul_col, q_const_col);
+                builder = builder.gate(gate.into_gate().unwrap());
             }
             
             let _circuit = black_box(builder.build().unwrap());
@@ -232,13 +237,13 @@ pub fn benchmark_folding(config: &BenchmarkConfig) -> Vec<(usize, Duration)> {
         let start = Instant::now();
         for _ in 0..config.iterations {
             // Create mock proofs for folding
-            let mut current_accumulator = None;
+            let mut current_accumulator: Option<Accumulator> = None;
             
             for _ in 0..size {
                 let proof = create_mock_proof();
                 let public_inputs = create_mock_public_inputs(16);
                 
-                match fold_proof(current_accumulator, proof, public_inputs) {
+                match fold_proof(current_accumulator.clone(), proof, public_inputs) {
                     Ok(folding_result) => {
                         current_accumulator = Some(folding_result.accumulator);
                     }
@@ -246,7 +251,7 @@ pub fn benchmark_folding(config: &BenchmarkConfig) -> Vec<(usize, Duration)> {
                 }
             }
             
-            black_box(current_accumulator);
+            black_box(&current_accumulator);
         }
         let avg_duration = start.elapsed() / config.iterations as u32;
         
@@ -294,7 +299,7 @@ fn create_mock_proof() -> halo_core::Proof {
     halo_core::Proof {
         commitments: vec![G1Projective::random(&mut rng).to_affine(); 3],
         evaluations: vec![BlsScalar::random(&mut rng); 5],
-        opening_proof: G1Projective::random(&mut rng).to_affine(),
+        openings: vec![0u8; 96], // Mock opening proof as bytes
     }
 }
 
@@ -307,10 +312,25 @@ fn create_mock_public_inputs(size: usize) -> Vec<BlsScalar> {
 /// Create a mock accumulator
 fn create_mock_accumulator(size: usize) -> Accumulator {
     let mut rng = thread_rng();
-    Accumulator {
-        commitments: (0..size).map(|_| G1Projective::random(&mut rng).to_affine()).collect(),
-        witnesses: (0..size).map(|_| BlsScalar::random(&mut rng)).collect(),
+    let commitments: Vec<commitments::IpaCommitment> = (0..size)
+        .map(|_| commitments::IpaCommitment { 
+            point: G1Projective::random(&mut rng).to_affine() 
+        })
+        .collect();
+    
+    let instance = AccumulatorInstance {
+        public_inputs: (0..size).map(|_| BlsScalar::random(&mut rng)).collect(),
+        commitments,
         challenges: (0..3).map(|_| BlsScalar::random(&mut rng)).collect(),
+        proof_count: 1,
+    };
+    
+    Accumulator {
+        instance,
+        witness_polynomials: Some(vec![
+            (0..size).map(|_| BlsScalar::random(&mut rng)).collect(); 3
+        ]),
+        error_terms: (0..2).map(|_| BlsScalar::random(&mut rng)).collect(),
     }
 }
 
@@ -318,21 +338,36 @@ fn create_mock_accumulator(size: usize) -> Accumulator {
 fn create_mock_folding_proof(accumulator: &Accumulator) -> FoldingProof {
     let mut rng = thread_rng();
     FoldingProof {
-        accumulator: accumulator.clone(),
+        accumulated_instance: accumulator.instance.clone(),
         folding_challenges: vec![BlsScalar::random(&mut rng); 3],
-        cross_terms: vec![G1Projective::random(&mut rng).to_affine(); 2],
-        evaluation_proof: G1Projective::random(&mut rng).to_affine(),
+        cross_terms: vec![
+            commitments::IpaCommitment { 
+                point: G1Projective::random(&mut rng).to_affine() 
+            }; 2
+        ],
+        evaluation_proof: vec![0u8; 96], // Mock evaluation proof as bytes
     }
 }
 
 /// Create a mock accumulator instance
 fn create_mock_instance(size: usize) -> AccumulatorInstance {
     let mut rng = thread_rng();
-    let public_inputs: Vec<u8> = (0..size * 32)
-        .map(|_| rng.gen())
+    let public_inputs: Vec<BlsScalar> = (0..size)
+        .map(|_| BlsScalar::random(&mut rng))
         .collect();
     
-    AccumulatorInstance { public_inputs }
+    let commitments: Vec<commitments::IpaCommitment> = (0..size)
+        .map(|_| commitments::IpaCommitment { 
+            point: G1Projective::random(&mut rng).to_affine() 
+        })
+        .collect();
+    
+    AccumulatorInstance { 
+        public_inputs,
+        commitments,
+        challenges: (0..3).map(|_| BlsScalar::random(&mut rng)).collect(),
+        proof_count: 1,
+    }
 }
 
 /// Run comprehensive benchmarks

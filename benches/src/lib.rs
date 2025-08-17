@@ -49,12 +49,12 @@ pub fn run_all_benchmarks() {
     // Run comprehensive benchmarks
     let results = run_comprehensive_benchmarks();
     
-    println!("\n" + "=".repeat(60).as_str());
+    println!("\n{}", "=".repeat(60));
     
     // Run memory analysis
     benchmark_memory_usage();
     
-    println!("\n" + "=".repeat(60).as_str());
+    println!("\n{}", "=".repeat(60));
     
     // Performance comparison
     performance_comparison();

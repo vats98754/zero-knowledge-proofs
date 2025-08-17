@@ -380,6 +380,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "halo-demo"
+version = "0.1.0"
+dependencies = [
+ "bls12_381",
+ "commitments",
+ "ff",
+ "group",
+ "halo-core",
+ "halo-recursion",
+ "halo2-arith",
+ "rand 0.8.5",
+]
+
+[[package]]
 name = "halo-examples"
 version = "0.1.0"
 dependencies = [
