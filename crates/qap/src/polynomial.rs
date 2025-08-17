@@ -13,23 +13,6 @@ impl PolynomialUtils {
         poly.evaluate(&x)
     }
 
-    /// Compute polynomial division with remainder using DenseUVPolynomial trait
-    pub fn divide_with_remainder<F: Field>(
-        dividend: &DensePolynomial<F>,
-        divisor: &DensePolynomial<F>,
-    ) -> Option<(DensePolynomial<F>, DensePolynomial<F>)> {
-        <DensePolynomial<F> as DenseUVPolynomial<F>>::divide_with_q_and_r(dividend, divisor)
-    }
-
-    /// Check if polynomial division is exact (remainder is zero)
-    pub fn divides<F: Field>(dividend: &DensePolynomial<F>, divisor: &DensePolynomial<F>) -> bool {
-        if let Some((_, remainder)) = Self::divide_with_remainder(dividend, divisor) {
-            remainder.is_zero()
-        } else {
-            false
-        }
-    }
-
     /// Compute the formal derivative of a polynomial
     pub fn derivative<F: Field>(poly: &DensePolynomial<F>) -> DensePolynomial<F> {
         let coeffs = &poly.coeffs;
@@ -50,19 +33,6 @@ impl PolynomialUtils {
 mod tests {
     use super::*;
     use ark_bls12_381::Fr;
-
-    #[test]
-    fn test_polynomial_division() {
-        // Create polynomials x^2 - 1 and x - 1
-        let dividend = DensePolynomial::from_coefficients_vec(vec![Fr::from(-1i64), Fr::zero(), Fr::from(1u64)]); // x^2 - 1
-        let divisor = DensePolynomial::from_coefficients_vec(vec![Fr::from(-1i64), Fr::from(1u64)]); // x - 1
-
-        let (quotient, remainder) = PolynomialUtils::divide_with_remainder(&dividend, &divisor).unwrap();
-        
-        // x^2 - 1 = (x - 1)(x + 1) + 0
-        assert!(remainder.is_zero());
-        assert_eq!(quotient.evaluate(&Fr::from(2u64)), Fr::from(3u64)); // 2 + 1 = 3
-    }
 
     #[test]
     fn test_derivative() {

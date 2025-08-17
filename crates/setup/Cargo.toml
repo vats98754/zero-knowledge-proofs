@@ -16,6 +16,7 @@ ark-std = { workspace = true }
 ark-serialize = { workspace = true }
 rand = { workspace = true }
 thiserror = { workspace = true }
+serde = { workspace = true }
 
 [dev-dependencies]
 rand_chacha = { workspace = true }
