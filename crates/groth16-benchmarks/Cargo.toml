@@ -1,0 +1,21 @@
+[package]
+name = "groth16-benchmarks"
+version = "0.1.0"
+edition = "2021"
+description = "Benchmarks for Groth16 implementation"
+
+[dependencies]
+groth16-field = { path = "../groth16-field" }
+groth16-r1cs = { path = "../groth16-r1cs" }
+groth16-qap = { path = "../groth16-qap" }
+groth16-setup = { path = "../groth16-setup" }
+groth16-core = { path = "../groth16-core" }
+criterion.workspace = true
+rand.workspace = true
+
+[[bench]]
+name = "groth16_bench"
+harness = false
+
+[lib]
+name = "groth16_benchmarks"

@@ -1,0 +1,16 @@
+[package]
+name = "groth16-field"
+version = "0.1.0"
+edition = "2021"
+description = "Field operations and traits for Groth16 implementation"
+
+[dependencies]
+ark-ff.workspace = true
+ark-bls12-381.workspace = true
+ark-serialize.workspace = true
+ark-std.workspace = true
+rand.workspace = true
+thiserror.workspace = true
+
+[lib]
+name = "groth16_field"
