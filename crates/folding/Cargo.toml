@@ -1,0 +1,29 @@
+[package]
+name = "folding"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Advanced folding operations and optimizations for Nova"
+
+[dependencies]
+nova-core = { path = "../nova-core" }
+ark-std.workspace = true
+ark-ff.workspace = true
+ark-ec.workspace = true
+ark-poly.workspace = true
+ark-bls12-381.workspace = true
+thiserror.workspace = true
+rand.workspace = true
+rayon.workspace = true
+serde.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+criterion.workspace = true
+
+[[bench]]
+name = "folding_bench"
+harness = false

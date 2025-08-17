@@ -1,0 +1,55 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/nova-core",
+    "crates/folding", 
+    "crates/commitments",
+    "crates/benches",
+    "crates/examples",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Zero Knowledge Proofs Contributors"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/vats98754/zero-knowledge-proofs"
+homepage = "https://github.com/vats98754/zero-knowledge-proofs"
+description = "Nova incremental verifiable computation with recursive folding"
+
+[workspace.dependencies]
+# Cryptographic foundations
+ark-std = "0.4"
+ark-ff = "0.4"
+ark-ec = "0.4"
+ark-poly = "0.4"
+ark-bls12-381 = "0.4"
+ark-relations = "0.4"
+ark-serialize = "0.4"
+ark-crypto-primitives = "0.4"
+
+# Commitment schemes
+ark-poly-commit = "0.4"
+
+# Utilities
+rayon = "1.7"
+thiserror = "1.0"
+rand = "0.8"
+rand_chacha = "0.3"
+
+# Testing and benchmarks
+criterion = "0.5"
+proptest = "1.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+
+[profile.release]
+debug = true
+lto = "thin"
+codegen-units = 1
+
+[profile.bench]
+debug = true
+lto = "thin"
+codegen-units = 1

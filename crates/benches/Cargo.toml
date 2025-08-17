@@ -1,0 +1,31 @@
+[package]
+name = "benches"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Benchmarks for Nova incremental verifiable computation"
+
+[dependencies]
+nova-core = { path = "../nova-core" }
+folding = { path = "../folding" }
+commitments = { path = "../commitments" }
+criterion.workspace = true
+ark-std.workspace = true
+ark-ff.workspace = true
+ark-bls12-381.workspace = true
+rand.workspace = true
+
+[[bench]]
+name = "end_to_end"
+harness = false
+
+[[bench]]
+name = "folding_performance"
+harness = false
+
+[[bench]]
+name = "commitment_performance"
+harness = false
