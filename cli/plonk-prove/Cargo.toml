@@ -5,5 +5,9 @@ edition = "2021"
 
 [dependencies]
 plonk-prover = { path = "../../crates/plonk-prover" }
+plonk-arith = { path = "../../crates/plonk-arith" }
+plonk-field = { path = "../../crates/field" }
+plonk-pc = { path = "../../crates/pc" }
 clap.workspace = true
 anyhow.workspace = true
+rand.workspace = true

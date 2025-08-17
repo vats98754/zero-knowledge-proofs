@@ -5,5 +5,10 @@ edition = "2021"
 
 [dependencies]
 plonk-verifier = { path = "../../crates/plonk-verifier" }
+plonk-prover = { path = "../../crates/plonk-prover" }
+plonk-field = { path = "../../crates/field" }
+plonk-pc = { path = "../../crates/pc" }
+ark-bls12-381.workspace = true
 clap.workspace = true
 anyhow.workspace = true
+rand.workspace = true

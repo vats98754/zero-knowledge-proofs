@@ -13,6 +13,8 @@ plonk-prover = { path = "../crates/plonk-prover" }
 plonk-verifier = { path = "../crates/plonk-verifier" }
 criterion.workspace = true
 ark-std.workspace = true
+ark-bls12-381.workspace = true
+ark-ff.workspace = true
 rand.workspace = true
 
 [[bench]]
