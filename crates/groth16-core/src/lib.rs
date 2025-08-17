@@ -11,7 +11,8 @@ use groth16_field::FieldLike;
 use groth16_setup::{ProvingKey, VerificationKey};
 use groth16_qap::QAP;
 use ark_ff::PrimeField;
-use ark_ec::{CurveGroup, Group, AffineRepr, VariableBaseMSM, pairing::Pairing};
+use ark_ec::{CurveGroup, AffineRepr, VariableBaseMSM, pairing::Pairing};
+use ark_poly::{EvaluationDomain, DenseUVPolynomial};
 use ark_bls12_381::{G1Projective, G2Projective, G1Affine, G2Affine, Fr, Bls12_381};
 use ark_std::{vec::Vec, Zero, One, UniformRand};
 use ark_serialize::{CanonicalSerialize, CanonicalDeserialize};
@@ -85,7 +86,7 @@ impl<F: FieldLike> Witness<F> {
         }
         
         // Ensure first element is 1 (constant)
-        if assignment.is_empty() || assignment[0] != F::one() {
+        if assignment.is_empty() || assignment[0] != <F as FieldLike>::one() {
             return Err(GrothError::InvalidWitness(
                 "First element of assignment must be 1 (constant)".to_string()
             ));
@@ -163,7 +164,7 @@ impl Prover {
         let mut a_contributions: Vec<(Fr, G1Affine)> = Vec::new();
         
         // Add α term
-        a_contributions.push((Fr::one(), pk.alpha_g1));
+        a_contributions.push((ark_ff::One::one(), pk.alpha_g1));
         
         // Add witness terms
         for (i, &w_i) in assignment_fr.iter().enumerate() {
@@ -181,7 +182,7 @@ impl Prover {
         let mut b_contributions: Vec<(Fr, G2Affine)> = Vec::new();
         
         // Add β term
-        b_contributions.push((Fr::one(), pk.beta_g2));
+        b_contributions.push((ark_ff::One::one(), pk.beta_g2));
         
         // Add witness terms
         for (i, &w_i) in assignment_fr.iter().enumerate() {
@@ -232,7 +233,7 @@ impl Prover {
         
         // Add H(s) term
         if !ark_ec::AffineRepr::is_zero(&h_s_g1) {
-            c_contributions.push((Fr::one(), h_s_g1));
+            c_contributions.push((ark_ff::One::one(), h_s_g1));
         }
         
         // Add s * π_A term
@@ -243,7 +244,7 @@ impl Prover {
         // Add r * π_B' term (convert π_B from G2 to G1)
         // For this we need [B(s)]₁ computation
         let mut b1_contributions: Vec<(Fr, G1Affine)> = Vec::new();
-        b1_contributions.push((Fr::one(), pk.beta_g1));
+        b1_contributions.push((ark_ff::One::one(), pk.beta_g1));
         
         for (i, &w_i) in assignment_fr.iter().enumerate() {
             if !ark_ff::Zero::is_zero(&w_i) && i < pk.b_g1.len() {
@@ -328,7 +329,7 @@ impl Verifier {
             .collect();
         
         // Compute [IC]₁ = IC₀ + Σ public_input_i * IC_i
-        let mut ic_contributions: Vec<(Fr, G1Affine)> = vec![(Fr::one(), vk.ic_g1[0])];
+        let mut ic_contributions: Vec<(Fr, G1Affine)> = vec![(ark_ff::One::one(), vk.ic_g1[0])];
         
         for (i, &input) in public_inputs_fr.iter().enumerate() {
             if !ark_ff::Zero::is_zero(&input) {
@@ -345,14 +346,10 @@ impl Verifier {
         let ic_neg = (-G1Projective::from(ic_g1)).into_affine();
         let c_neg = (-G1Projective::from(proof.c)).into_affine();
         
-        let pairing_inputs = [
-            (proof.a, proof.b),
-            (alpha_neg, vk.beta_g2),
-            (ic_neg, vk.gamma_g2),
-            (c_neg, vk.delta_g2),
-        ];
+        let g1_inputs = [proof.a, alpha_neg, ic_neg, c_neg];
+        let g2_inputs = [proof.b, vk.beta_g2, vk.gamma_g2, vk.delta_g2];
         
-        let result = Bls12_381::multi_pairing(pairing_inputs);
+        let result = Bls12_381::multi_pairing(&g1_inputs, &g2_inputs);
         
         Ok(result.is_zero())
     }
@@ -409,7 +406,7 @@ impl BatchVerifier {
                 })
                 .collect();
             
-            let mut ic_contributions: Vec<(Fr, G1Affine)> = vec![(Fr::one(), vk.ic_g1[0])];
+            let mut ic_contributions: Vec<(Fr, G1Affine)> = vec![(ark_ff::One::one(), vk.ic_g1[0])];
             
             for (i, &input) in public_inputs_fr.iter().enumerate() {
                 if !ark_ff::Zero::is_zero(&input) {
@@ -426,14 +423,10 @@ impl BatchVerifier {
         let ic_neg = (-ic_acc).into_affine();
         let c_neg = (-c_acc).into_affine();
         
-        let pairing_inputs = [
-            (a_acc.into_affine(), b_acc.into_affine()),
-            (alpha_neg, vk.beta_g2),
-            (ic_neg, vk.gamma_g2),
-            (c_neg, vk.delta_g2),
-        ];
+        let g1_inputs = [a_acc.into_affine(), alpha_neg, ic_neg, c_neg];
+        let g2_inputs = [b_acc.into_affine(), vk.beta_g2, vk.gamma_g2, vk.delta_g2];
         
-        let result = Bls12_381::multi_pairing(pairing_inputs);
+        let result = Bls12_381::multi_pairing(&g1_inputs, &g2_inputs);
         
         Ok(result.is_zero())
     }
@@ -470,7 +463,7 @@ mod tests {
         
         // Create witness: [1, 3, 4, 12] with x=3 public
         let assignment = vec![
-            F::one(),     // constant
+            <F as FieldLike>::one(),     // constant
             F::from(3u64), // x (public)
             F::from(4u64), // y (private)
             F::from(12u64), // z (private)
@@ -506,7 +499,7 @@ mod tests {
         let crs = CRS::generate_random(&qap, 1, &mut rng).unwrap();
         
         // Create valid proof
-        let assignment = vec![F::one(), F::from(3u64), F::from(4u64), F::from(12u64)];
+        let assignment = vec![<F as FieldLike>::one(), F::from(3u64), F::from(4u64), F::from(12u64)];
         let witness = Witness::new(assignment, 1).unwrap();
         let proof = Prover::prove(&crs.pk, &witness, &mut rng).unwrap();
         
@@ -546,7 +539,7 @@ mod tests {
         
         for (x_val, y_val, z_val) in test_cases {
             let assignment = vec![
-                F::one(),
+                <F as FieldLike>::one(),
                 F::from(x_val),
                 F::from(y_val),
                 F::from(z_val),
