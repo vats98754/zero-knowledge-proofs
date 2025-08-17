@@ -35,7 +35,7 @@ pub trait CommitmentEngine {
     type Params: Clone + CanonicalSerialize + CanonicalDeserialize;
     type CommitterKey: Clone + CanonicalSerialize + CanonicalDeserialize;
     type VerifierKey: Clone + CanonicalSerialize + CanonicalDeserialize;
-    type Commitment: Clone + CanonicalSerialize + CanonicalDeserialize;
+    type Commitment: Clone + CanonicalSerialize + CanonicalDeserialize + core::fmt::Debug + PartialEq;
     type Proof: Clone + CanonicalSerialize + CanonicalDeserialize;
 
     /// Generate universal parameters for a maximum degree
@@ -99,13 +99,13 @@ pub struct KZGVerifierKey {
 }
 
 /// KZG commitment (G1 element)
-#[derive(Clone, CanonicalSerialize, CanonicalDeserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, CanonicalSerialize, CanonicalDeserialize, PartialEq, Eq)]
 pub struct KZGCommitmentWrapper {
     pub point: G1Affine,
 }
 
 /// KZG proof (G1 element)
-#[derive(Clone, CanonicalSerialize, CanonicalDeserialize)]
+#[derive(Debug, Clone, CanonicalSerialize, CanonicalDeserialize)]
 pub struct KZGProofWrapper {
     pub point: G1Affine,
 }

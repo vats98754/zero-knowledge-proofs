@@ -9,7 +9,9 @@ license = "MIT OR Apache-2.0"
 plonk-field = { path = "../field" }
 plonk-pc = { path = "../pc" }
 plonk-arith = { path = "../plonk-arith" }
+plonk-prover = { path = "../plonk-prover" }
 ark-ff.workspace = true
+ark-bls12-381.workspace = true
 ark-std.workspace = true
 serde.workspace = true
 thiserror.workspace = true

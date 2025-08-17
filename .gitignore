@@ -1,0 +1,25 @@
+# Rust/Cargo
+target/
+Cargo.lock
+*.pdb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Benchmarks
+criterion/
+
+# Logs
+*.log
+
+# Temporary files
+/tmp/
+.tmp/
