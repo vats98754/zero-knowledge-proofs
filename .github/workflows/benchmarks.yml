@@ -1,0 +1,37 @@
+# .github/workflows/benchmarks.yml
+name: Weekly Benchmarks
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'   # weekly: Monday 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  run-benches:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust (stable)
+        uses: dtolnay/rust-toolchain-action@stable
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Build release
+        run: cargo build --workspace --release
+      - name: Run full benchmarks (criterion)
+        run: |
+          # run benchmarks for core crates; these produce CSVs under target/criterion
+          cargo bench --manifest-path crates/integration/Cargo.toml
+          cargo bench --manifest-path crates/plonk/Cargo.toml || true
+          cargo bench --manifest-path crates/stark/Cargo.toml || true
+      - name: Collect benchmark CSVs
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: target/criterion/**/new/estimates.csv
