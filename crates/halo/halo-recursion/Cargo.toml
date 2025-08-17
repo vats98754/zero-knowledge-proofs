@@ -18,6 +18,7 @@ commitments.workspace = true
 group.workspace = true
 ff.workspace = true
 pairing.workspace = true
+bls12_381.workspace = true
 subtle.workspace = true
 rand.workspace = true
 rand_core.workspace = true

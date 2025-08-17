@@ -11,8 +11,14 @@ pub mod errors;
 
 // Re-export key types
 pub use accumulator::{Accumulator, AccumulatorInstance};
-pub use folding::{fold_proof, FoldingProof};
-pub use recursive_verifier::{verify_recursive, RecursiveVerifier};
+pub use folding::{
+    fold_proof, fold_proof_with_config, verify_folding_proof,
+    FoldingProof, FoldingResult, FoldingConfig
+};
+pub use recursive_verifier::{
+    verify_recursive, verify_base_proof,
+    RecursiveVerifier, RecursiveVerifierConfig, VerificationContext
+};
 pub use errors::{RecursionError, Result};
 
 /// Re-export core types
@@ -23,16 +29,44 @@ pub trait RecursionEngine {
     type Proof;
     type Instance;
     type Accumulator;
+    type FoldingProof;
     
     /// Fold a proof into an accumulator
     fn fold_proof(
-        prev_proof: Option<Self::Proof>,
+        prev_accumulator: Option<Self::Accumulator>,
+        new_proof: Self::Proof,
         instance: Self::Instance,
-    ) -> Result<Self::Proof>;
+    ) -> Result<(Self::Accumulator, Self::FoldingProof)>;
     
     /// Verify a recursive proof
     fn verify_recursive(
-        proof: &Self::Proof,
-        instance: &Self::Instance,
+        folding_proof: &Self::FoldingProof,
+        expected_instance: &Self::Instance,
     ) -> Result<bool>;
+}
+
+/// Default Halo recursion engine implementation
+pub struct HaloRecursionEngine;
+
+impl RecursionEngine for HaloRecursionEngine {
+    type Proof = halo_core::Proof;
+    type Instance = AccumulatorInstance;
+    type Accumulator = Accumulator;
+    type FoldingProof = FoldingProof;
+    
+    fn fold_proof(
+        prev_accumulator: Option<Self::Accumulator>,
+        new_proof: Self::Proof,
+        instance: Self::Instance,
+    ) -> Result<(Self::Accumulator, Self::FoldingProof)> {
+        let result = fold_proof(prev_accumulator, new_proof, instance.public_inputs)?;
+        Ok((result.accumulator, result.folding_proof))
+    }
+    
+    fn verify_recursive(
+        folding_proof: &Self::FoldingProof,
+        expected_instance: &Self::Instance,
+    ) -> Result<bool> {
+        verify_recursive(folding_proof, expected_instance)
+    }
 }

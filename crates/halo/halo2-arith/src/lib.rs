@@ -13,10 +13,17 @@ pub mod errors;
 
 // Re-export key types
 pub use circuit::{Halo2Circuit, CircuitBuilder};
-pub use gates::{Gate, StandardGate, CustomGate};
+pub use gates::{
+    Gate, StandardGate, MultiplicationGate, AdditionGate, 
+    BooleanGate, EqualityGate, CustomGate, GateBuilder
+};
 pub use lookup::{LookupTable, LookupArgument};
-pub use columns::{Column, AdviceColumn, FixedColumn, InstanceColumn};
-pub use constraints::{ConstraintSystem, Constraint};
+pub use columns::{
+    Column, AdviceColumn, FixedColumn, InstanceColumn, ColumnManager, ColumnStats
+};
+pub use constraints::{
+    ConstraintSystem, Constraint, Expression, ConstraintSystemStats
+};
 pub use errors::{Halo2Error, Result};
 
 /// Re-export commitments for convenience

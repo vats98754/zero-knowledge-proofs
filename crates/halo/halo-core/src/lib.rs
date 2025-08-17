@@ -14,7 +14,7 @@ pub mod errors;
 pub use circuit::{Circuit, CircuitConfig};
 pub use proof::{Proof, ProofSystem};
 pub use prover::Prover;
-pub use verifier::Verifier;
+pub use verifier::{Verifier, VerifierConfig};
 pub use errors::{HaloError, Result};
 
 /// Re-export commitments for convenience
