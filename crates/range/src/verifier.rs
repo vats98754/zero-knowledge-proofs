@@ -3,6 +3,8 @@
 use crate::{RangeProof, ConstraintSystem};
 use bulletproofs_core::*;
 use ipa::InnerProductVerifier;
+use rand_core::{CryptoRng, RngCore};
+use rand;
 
 /// Verifier for range proofs
 pub struct RangeVerifier {
@@ -11,9 +13,9 @@ pub struct RangeVerifier {
 
 impl RangeVerifier {
     /// Create a new range verifier with fresh generators
-    pub fn new<R: rand::RngCore + rand::CryptoRng>(rng: &mut R) -> Self {
+    pub fn new<R: RngCore + CryptoRng>(rng: &mut R, max_bit_length: usize) -> Self {
         Self {
-            generators: GeneratorSet::new(rng),
+            generators: GeneratorSet::new(rng, max_bit_length),
         }
     }
 
@@ -48,23 +50,26 @@ impl RangeVerifier {
         let constraint_system = ConstraintSystem::new(&self.generators, bit_length);
 
         // Reconstruct transcript for IPA verification
-        let mut transcript = TranscriptProtocol::new(b"RangeProof");
-        transcript.append_point(b"commitment", &commitment);
-        transcript.append_point(b"bit_commitment", &bit_commitment);
-        transcript.append_u64(b"bit_length", bit_length as u64);
+        let mut transcript = bulletproofs_core::transcript::bulletproofs_transcript(b"RangeProof");
+        transcript.append_point(b"commitment", &GroupElement::from(commitment));
+        transcript.append_point(b"bit_commitment", &GroupElement::from(bit_commitment));
+        transcript.append_message(b"bit_length", &(bit_length as u64).to_le_bytes());
 
         // Verify IPA proof
-        let ipa_verifier = IpaVerifier::new(
-            constraint_system.g_generators.clone(),
-            constraint_system.h_generators.clone(),
-            constraint_system.u_generator,
-        );
+        let mut ipa_verifier = InnerProductVerifier::new(self.generators.clone());
+        let rng = rand::rngs::OsRng;
 
-        ipa_verifier.verify(
-            &bit_commitment,
-            proof.ipa_proof(),
+        let verified = ipa_verifier.verify(
+            rng,
             &mut transcript,
+            proof.ipa_proof(),
+            &GroupElement::from(bit_commitment),
+            2 * bit_length, // Constraint vectors are 2x bit length
         )?;
+
+        if !verified {
+            return Err(BulletproofsError::VerificationFailed);
+        }
 
         // Additional range-specific verification
         self.verify_range_constraints(proof, bit_length, &constraint_system)?;
@@ -83,12 +88,14 @@ impl RangeVerifier {
         // the inner product relation. Here we can add additional checks if needed.
 
         // Verify that the proof structure is valid for the given bit length
-        let expected_rounds = (2 * bit_length).next_power_of_two().trailing_zeros() as usize;
-        let actual_rounds = proof.ipa_proof().l_commitments().len();
+        let constraint_vector_length = 2 * bit_length;
+        let expected_rounds = constraint_vector_length.next_power_of_two().trailing_zeros() as usize;
+        let actual_rounds = proof.ipa_proof().l_vec.len();
 
         if actual_rounds != expected_rounds {
             return Err(BulletproofsError::InvalidProof(
-                format!("Expected {} IPA rounds, got {}", expected_rounds, actual_rounds)
+                format!("Expected {} IPA rounds for constraint vector length {}, got {}", 
+                    expected_rounds, constraint_vector_length, actual_rounds)
             ));
         }
 
@@ -133,11 +140,12 @@ impl RangeVerifier {
         let h = self.generators.h_generator();
 
         // Remove blinding: C - blinding * H = value * G
-        let value_commitment = commitment - blinding * h;
+        let blinding_point = h * blinding;
+        let value_commitment = GroupElement::from(commitment) - blinding_point;
 
         // Try values from 0 to 2^16 (practical limit for brute force)
         for candidate in 0..=65535u64 {
-            let test_commitment = Scalar::from(candidate) * g;
+            let test_commitment = g * Scalar::from(candidate);
             if test_commitment == value_commitment {
                 return Ok(Some(candidate));
             }
@@ -175,8 +183,8 @@ mod tests {
     #[test]
     fn test_range_verification_different_generators_fails() {
         let mut rng = thread_rng();
-        let prover = RangeProver::new(&mut rng);
-        let verifier = RangeVerifier::new(&mut rng); // Different generators
+        let prover = RangeProver::new(&mut rng, 64);
+        let verifier = RangeVerifier::new(&mut rng, 64); // Different generators
         
         let value = 42u64;
         let bit_length = 8;
@@ -189,7 +197,7 @@ mod tests {
     #[test]
     fn test_range_verification_wrong_bit_length_fails() {
         let mut rng = thread_rng();
-        let generators = GeneratorSet::new(&mut rng);
+        let generators = GeneratorSet::new(&mut rng, 64);
         let prover = RangeProver::with_generators(generators.clone());
         let verifier = RangeVerifier::with_generators(generators);
         
@@ -205,7 +213,7 @@ mod tests {
     #[test]
     fn test_batch_verification() {
         let mut rng = thread_rng();
-        let generators = GeneratorSet::new(&mut rng);
+        let generators = GeneratorSet::new(&mut rng, 64);
         let prover = RangeProver::with_generators(generators.clone());
         let verifier = RangeVerifier::with_generators(generators);
         
@@ -224,7 +232,7 @@ mod tests {
     #[test]
     fn test_batch_verification_mismatched_lengths() {
         let mut rng = thread_rng();
-        let verifier = RangeVerifier::new(&mut rng);
+        let verifier = RangeVerifier::new(&mut rng, 64);
         
         let proofs = vec![];
         let bit_lengths = vec![8];
@@ -235,7 +243,7 @@ mod tests {
     #[test]
     fn test_value_extraction_with_blinding() {
         let mut rng = thread_rng();
-        let generators = GeneratorSet::new(&mut rng);
+        let generators = GeneratorSet::new(&mut rng, 64);
         let prover = RangeProver::with_generators(generators.clone());
         let verifier = RangeVerifier::with_generators(generators);
         
@@ -252,7 +260,7 @@ mod tests {
     #[test]
     fn test_value_extraction_with_wrong_blinding() {
         let mut rng = thread_rng();
-        let generators = GeneratorSet::new(&mut rng);
+        let generators = GeneratorSet::new(&mut rng, 64);
         let prover = RangeProver::with_generators(generators.clone());
         let verifier = RangeVerifier::with_generators(generators);
         
@@ -270,8 +278,8 @@ mod tests {
     #[test]
     fn test_verification_invalid_bit_length() {
         let mut rng = thread_rng();
-        let verifier = RangeVerifier::new(&mut rng);
-        let prover = RangeProver::new(&mut rng);
+        let verifier = RangeVerifier::new(&mut rng, 64);
+        let prover = RangeProver::new(&mut rng, 64);
         
         let value = 42u64;
         let proof = prover.prove_range(value, 8, None, &mut rng).unwrap();

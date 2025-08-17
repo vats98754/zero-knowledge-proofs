@@ -3,7 +3,7 @@
 use crate::{RangeProof, ConstraintSystem, bit_decompose};
 use bulletproofs_core::*;
 use ipa::InnerProductProver;
-use rand::{CryptoRng, RngCore};
+use rand_core::{CryptoRng, RngCore};
 use curve25519_dalek::traits::VartimeMultiscalarMul;
 
 /// Prover for generating range proofs
@@ -13,9 +13,9 @@ pub struct RangeProver {
 
 impl RangeProver {
     /// Create a new range prover with fresh generators
-    pub fn new<R: RngCore + CryptoRng>(rng: &mut R) -> Self {
+    pub fn new<R: RngCore + CryptoRng>(rng: &mut R, max_bit_length: usize) -> Self {
         Self {
-            generators: GeneratorSet::new(rng),
+            generators: GeneratorSet::new(rng, max_bit_length),
         }
     }
 
@@ -64,22 +64,18 @@ impl RangeProver {
         let bit_commitment = constraint_system.commit_to_vectors(&a_vector, &b_vector, blinding)?;
 
         // Create IPA proof for the constraint vectors
-        let mut transcript = TranscriptProtocol::new(b"RangeProof");
-        transcript.append_point(b"commitment", &commitment);
-        transcript.append_point(b"bit_commitment", &bit_commitment);
-        transcript.append_u64(b"bit_length", bit_length as u64);
+        let mut transcript = bulletproofs_core::transcript::bulletproofs_transcript(b"RangeProof");
+        transcript.append_point(b"commitment", &GroupElement::from(commitment));
+        transcript.append_point(b"bit_commitment", &GroupElement::from(bit_commitment));
+        transcript.append_message(b"bit_length", &(bit_length as u64).to_le_bytes());
 
-        let ipa_prover = IpaProver::new(
-            constraint_system.g_generators.clone(),
-            constraint_system.h_generators.clone(),
-            constraint_system.u_generator,
-        );
+        let mut ipa_prover = InnerProductProver::new(self.generators.clone());
 
         let ipa_proof = ipa_prover.prove(
+            rng,
+            &mut transcript,
             &a_vector,
             &b_vector,
-            &mut transcript,
-            rng,
         )?;
 
         Ok(RangeProof::new(
@@ -92,12 +88,12 @@ impl RangeProver {
 
     /// Commit to a value: C = value * G + blinding * H
     fn commit_to_value(&self, value: Scalar, blinding: Scalar) -> Result<RistrettoPoint, BulletproofsError> {
-        let g = self.generators.g;
-        let h = self.generators.h;
+        let g = self.generators.g_generator();
+        let h = self.generators.h_generator();
         
         Ok(RistrettoPoint::vartime_multiscalar_mul(
             &[value, blinding],
-            &[g, h],
+            &[g.into(), h.into()],
         ))
     }
 
@@ -116,7 +112,7 @@ mod tests {
     #[test]
     fn test_range_proof_generation() {
         let mut rng = thread_rng();
-        let prover = RangeProver::new(&mut rng);
+        let prover = RangeProver::new(&mut rng, 64);
         
         let value = 42u64;
         let bit_length = 8;
@@ -132,7 +128,7 @@ mod tests {
     #[test]
     fn test_range_proof_roundtrip() {
         let mut rng = thread_rng();
-        let generators = GeneratorSet::new(&mut rng);
+        let generators = GeneratorSet::new(&mut rng, 64); // Support up to 64-bit ranges
         let prover = RangeProver::with_generators(generators.clone());
         let verifier = RangeVerifier::with_generators(generators);
         
@@ -146,7 +142,7 @@ mod tests {
     #[test]
     fn test_range_proof_different_bit_lengths() {
         let mut rng = thread_rng();
-        let generators = GeneratorSet::new(&mut rng);
+        let generators = GeneratorSet::new(&mut rng, 64); // Support up to 64-bit ranges
         let prover = RangeProver::with_generators(generators.clone());
         let verifier = RangeVerifier::with_generators(generators);
         
@@ -170,7 +166,7 @@ mod tests {
     #[test]
     fn test_range_proof_fails_for_out_of_range_value() {
         let mut rng = thread_rng();
-        let prover = RangeProver::new(&mut rng);
+        let prover = RangeProver::new(&mut rng, 64);
         
         let value = 256u64; // Too large for 8 bits
         let bit_length = 8;
@@ -182,7 +178,7 @@ mod tests {
     #[test]
     fn test_range_proof_fails_for_invalid_bit_length() {
         let mut rng = thread_rng();
-        let prover = RangeProver::new(&mut rng);
+        let prover = RangeProver::new(&mut rng, 64);
         
         let value = 42u64;
         
@@ -198,7 +194,7 @@ mod tests {
     #[test]
     fn test_range_proof_with_custom_blinding() {
         let mut rng = thread_rng();
-        let prover = RangeProver::new(&mut rng);
+        let prover = RangeProver::new(&mut rng, 64);
         
         let value = 42u64;
         let bit_length = 8;

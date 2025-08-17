@@ -32,6 +32,10 @@ pub enum BulletproofsError {
     /// Range constraint violation
     #[error("Value {value} is not in range [0, 2^{bits})")]
     RangeConstraintViolation { value: u64, bits: usize },
+
+    /// Invalid input provided
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
 }
 
 /// Result type for Bulletproofs operations

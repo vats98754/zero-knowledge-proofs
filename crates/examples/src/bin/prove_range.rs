@@ -48,8 +48,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     let mut rng = thread_rng();
     
-    // Create prover
-    let prover = RangeProver::new(&mut rng);
+    // Create prover  
+    let prover = RangeProver::new(&mut rng, args.bits);
     
     if args.verbose {
         eprintln!("Generating proof...");

@@ -91,6 +91,31 @@ impl GeneratorSet {
         self.g_vec.len()
     }
 
+    /// Get the G generator (used for value commitments)
+    pub fn g_generator(&self) -> GroupElement {
+        GroupElement::from(self.g)
+    }
+
+    /// Get the H generator (used for blinding factor commitments)
+    pub fn h_generator(&self) -> GroupElement {
+        GroupElement::from(self.h)
+    }
+
+    /// Get the U generator (used for inner product commitments)
+    pub fn u_generator(&self) -> GroupElement {
+        GroupElement::from(self.u)
+    }
+
+    /// Get a slice of the G vector generators
+    pub fn g_vec(&self) -> &[RistrettoPoint] {
+        &self.g_vec
+    }
+
+    /// Get a slice of the H vector generators
+    pub fn h_vec(&self) -> &[RistrettoPoint] {
+        &self.h_vec
+    }
+
     /// Ensure we have enough generators for the given length
     pub fn ensure_capacity<R: RngCore + CryptoRng>(&mut self, _rng: R, length: usize) -> BulletproofsResult<()> {
         if self.vector_length() >= length {

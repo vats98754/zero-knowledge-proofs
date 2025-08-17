@@ -66,6 +66,87 @@ impl InnerProductProof {
         // Each compressed point is 32 bytes, each scalar is 32 bytes
         self.l_vec.len() * 32 + self.r_vec.len() * 32 + 64
     }
+
+    /// Serialize proof to bytes
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut result = Vec::new();
+        
+        // Write number of rounds
+        result.extend_from_slice(&(self.l_vec.len() as u32).to_le_bytes());
+        
+        // Write L points
+        for point in &self.l_vec {
+            result.extend_from_slice(point.as_bytes());
+        }
+        
+        // Write R points
+        for point in &self.r_vec {
+            result.extend_from_slice(point.as_bytes());
+        }
+        
+        // Write scalars a and b
+        result.extend_from_slice(self.a.as_bytes());
+        result.extend_from_slice(self.b.as_bytes());
+        
+        result
+    }
+
+    /// Deserialize proof from bytes
+    pub fn from_bytes(bytes: &[u8]) -> BulletproofsResult<Self> {
+        if bytes.len() < 4 {
+            return Err(BulletproofsError::InvalidProof("Insufficient bytes for proof".to_string()));
+        }
+
+        let mut offset = 0;
+        
+        // Read number of rounds
+        let num_rounds = u32::from_le_bytes([
+            bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]
+        ]) as usize;
+        offset += 4;
+
+        let expected_size = 4 + num_rounds * 64 + 64; // 4 + 2*rounds*32 + 2*32
+        if bytes.len() != expected_size {
+            return Err(BulletproofsError::InvalidProof(
+                format!("Invalid proof size: expected {}, got {}", expected_size, bytes.len())
+            ));
+        }
+
+        // Read L points
+        let mut l_vec = Vec::with_capacity(num_rounds);
+        for _ in 0..num_rounds {
+            let point_bytes: [u8; 32] = bytes[offset..offset + 32]
+                .try_into()
+                .map_err(|_| BulletproofsError::InvalidProof("Invalid point bytes".to_string()))?;
+            l_vec.push(CompressedRistretto::from_slice(&point_bytes).unwrap());
+            offset += 32;
+        }
+
+        // Read R points
+        let mut r_vec = Vec::with_capacity(num_rounds);
+        for _ in 0..num_rounds {
+            let point_bytes: [u8; 32] = bytes[offset..offset + 32]
+                .try_into()
+                .map_err(|_| BulletproofsError::InvalidProof("Invalid point bytes".to_string()))?;
+            r_vec.push(CompressedRistretto::from_slice(&point_bytes).unwrap());
+            offset += 32;
+        }
+
+        // Read scalar a
+        let a_bytes: [u8; 32] = bytes[offset..offset + 32]
+            .try_into()
+            .map_err(|_| BulletproofsError::InvalidProof("Invalid scalar a".to_string()))?;
+        let a = Scalar::from_bytes_mod_order(a_bytes);
+        offset += 32;
+
+        // Read scalar b
+        let b_bytes: [u8; 32] = bytes[offset..offset + 32]
+            .try_into()
+            .map_err(|_| BulletproofsError::InvalidProof("Invalid scalar b".to_string()))?;
+        let b = Scalar::from_bytes_mod_order(b_bytes);
+
+        Ok(Self { l_vec, r_vec, a, b })
+    }
 }
 
 #[cfg(test)]

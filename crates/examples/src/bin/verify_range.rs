@@ -69,7 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Create verifier (note: in production, generators should be deterministic/shared)
     let mut rng = thread_rng();
-    let verifier = RangeVerifier::new(&mut rng);
+    let verifier = RangeVerifier::new(&mut rng, args.bits);
     
     if args.verbose {
         eprintln!("Verifying proof...");

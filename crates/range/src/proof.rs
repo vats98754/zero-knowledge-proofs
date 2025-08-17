@@ -12,7 +12,7 @@ pub struct RangeProof {
     /// Commitment to the bit vector decomposition
     pub bit_commitment: CompressedRistretto,
     /// Inner product argument proof for the constraint system
-    pub ipa_proof: IpaProof,
+    pub ipa_proof: InnerProductProof,
     /// Blinding factor for the commitment
     pub blinding: Scalar,
 }
@@ -22,7 +22,7 @@ impl RangeProof {
     pub fn new(
         commitment: CompressedRistretto,
         bit_commitment: CompressedRistretto,
-        ipa_proof: IpaProof,
+        ipa_proof: InnerProductProof,
         blinding: Scalar,
     ) -> Self {
         Self {
@@ -44,7 +44,7 @@ impl RangeProof {
     }
 
     /// Get the IPA proof
-    pub fn ipa_proof(&self) -> &IpaProof {
+    pub fn ipa_proof(&self) -> &InnerProductProof {
         &self.ipa_proof
     }
 
@@ -97,7 +97,7 @@ impl RangeProof {
         }
 
         // Parse IPA proof
-        let ipa_proof = IpaProof::from_bytes(&bytes[offset..offset + ipa_len])?;
+        let ipa_proof = InnerProductProof::from_bytes(&bytes[offset..offset + ipa_len])?;
         offset += ipa_len;
 
         // Parse blinding factor
