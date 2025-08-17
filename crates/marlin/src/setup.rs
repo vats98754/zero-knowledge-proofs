@@ -11,7 +11,7 @@ use ark_std::rand::Rng;
 use std::marker::PhantomData;
 
 /// Universal Structured Reference String (SRS) for Marlin
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct MarlinSRS<E: CommitmentEngine> {
     /// Commitment engine parameters (contains the actual SRS)
     pub commitment_params: E::Parameters,
@@ -33,7 +33,7 @@ pub struct VerificationParams {
 }
 
 /// Circuit-specific preprocessing key
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct MarlinPreprocessingKey<E: CommitmentEngine> {
     /// Universal SRS
     pub srs: MarlinSRS<E>,

@@ -12,7 +12,7 @@ use ark_std::rand::Rng;
 use std::marker::PhantomData;
 
 /// Marlin proof structure
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct MarlinProof<E: CommitmentEngine> {
     /// Round 1 commitments and messages
     pub round1: Round1Prover<E>,
@@ -38,6 +38,7 @@ pub struct ProofMetadata {
 }
 
 /// Marlin prover state machine
+#[derive(Clone)]
 pub struct MarlinProver<E: CommitmentEngine> {
     /// Commitment engine parameters
     pub params: E::Parameters,
@@ -121,7 +122,7 @@ impl<E: CommitmentEngine> MarlinProver<E> {
         }
 
         // Create prover context
-        let mut context = ProverContext::new(self.clone(), witness, rng)?;
+        let mut context = ProverContext::new((*self).clone(), witness, rng)?;
 
         // Execute 3-round protocol
         let round1 = context.execute_round1(rng)?;

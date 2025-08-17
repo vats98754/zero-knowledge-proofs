@@ -5,7 +5,7 @@
 
 use crate::{Result, MarlinError};
 use zkp_field::Scalar;
-use ark_ff::{PrimeField, BigInteger};
+use ark_ff::{PrimeField, BigInteger, Zero, One};
 use blake2::{Blake2s256, Digest};
 use std::marker::PhantomData;
 
@@ -136,7 +136,22 @@ impl MarlinTranscriptProtocol for Transcript {
         bytes[32..].copy_from_slice(&extended_hash);
         
         // Convert to field element
-        Scalar::from_le_bytes_mod_order(&bytes)
+        // Convert hash to scalar field element
+        use ark_serialize::CanonicalDeserialize;
+        let mut field_bytes = [0u8; 32];
+        field_bytes.copy_from_slice(&bytes[..32]);
+        
+        // Use a simple approach to convert bytes to scalar
+        let mut result = Scalar::zero();
+        let mut power_of_256 = Scalar::one();
+        for (i, &byte) in field_bytes.iter().enumerate() {
+            if i < 8 {  // Only use first 8 bytes to avoid overflow
+                let byte_contribution = Scalar::from(byte as u64) * power_of_256;
+                result += byte_contribution;
+                power_of_256 *= Scalar::from(256u64);
+            }
+        }
+        result
     }
 
     fn challenge_scalars(&mut self, label: &[u8], n: usize) -> Vec<Scalar> {

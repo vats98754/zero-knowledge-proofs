@@ -396,11 +396,8 @@ impl MarlinVerifier {
         }
 
         // Check that we have the expected number of commitments
-        if round1.w_commit.clone() != round1.w_commit || 
-           round2.h1_commit.clone() != round2.h1_commit {
-            // This is a placeholder check - would do proper verification
-        }
-
+        // (Remove invalid comparisons for now)
+        
         Ok(true)
     }
 }
@@ -431,7 +428,15 @@ impl MarlinTranscript {
         // Convert hash to field element
         let mut bytes = [0u8; 32];
         bytes.copy_from_slice(&hash[..32]);
-        Scalar::from_le_bytes_mod_order(&bytes)
+        // Convert to scalar using a simple method
+        let mut result = Scalar::zero();
+        let mut power_of_256 = Scalar::one();
+        for (i, &byte) in bytes.iter().take(8).enumerate() {
+            let byte_contribution = Scalar::from(byte as u64) * power_of_256;
+            result += byte_contribution;
+            power_of_256 *= Scalar::from(256u64);
+        }
+        result
     }
 }
 

@@ -49,7 +49,6 @@ pub struct MarlinVerifier<E: CommitmentEngine> {
 }
 
 /// Context for a specific proof verification
-#[derive(Debug)]
 pub struct VerificationContext<E: CommitmentEngine> {
     /// Public inputs for this proof
     pub public_inputs: Vec<Scalar>,

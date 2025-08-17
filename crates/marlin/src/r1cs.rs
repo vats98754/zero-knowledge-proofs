@@ -54,7 +54,7 @@ pub struct R1CSWitness {
 }
 
 /// R1CS polynomial encoding for Marlin
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct R1CSEncoding {
     /// Selector polynomials for A matrix
     pub a_selectors: Vec<DensePolynomial>,
