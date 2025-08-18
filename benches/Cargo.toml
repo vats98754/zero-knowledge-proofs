@@ -1,0 +1,29 @@
+[package]
+name = "halo-benches"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Comprehensive benchmarks for Halo and Halo2 systems"
+
+[dependencies]
+# Workspace dependencies
+halo-core.workspace = true
+halo-recursion.workspace = true
+halo2-arith.workspace = true
+commitments.workspace = true
+
+# Core cryptographic dependencies
+group.workspace = true
+ff.workspace = true
+pairing.workspace = true
+rand.workspace = true
+
+# Benchmarking
+criterion.workspace = true
+
+# For benchmarks
+bls12_381.workspace = true

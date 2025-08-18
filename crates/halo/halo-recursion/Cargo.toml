@@ -1,0 +1,38 @@
+[package]
+name = "halo-recursion"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Halo recursion engine for proof folding and aggregation"
+
+[dependencies]
+# Workspace dependencies
+halo-core.workspace = true
+commitments.workspace = true
+
+# Core cryptographic dependencies
+group.workspace = true
+ff.workspace = true
+pairing.workspace = true
+bls12_381.workspace = true
+subtle.workspace = true
+rand.workspace = true
+rand_core.workspace = true
+
+# Transcript
+merlin.workspace = true
+
+# Utilities
+serde.workspace = true
+thiserror.workspace = true
+
+# Parallel computation
+rayon.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+criterion.workspace = true
