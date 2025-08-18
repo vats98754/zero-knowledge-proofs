@@ -1,11 +1,5 @@
 #[cfg(feature = "bench")]
 use criterion::{criterion_group, criterion_main, Criterion, BenchmarkId};
-use zkvm_core::ExecutionTrace;
-use compiler::compile_to_trace;
-use plonk_backend::PlonkBackend;
-use examples::TokenContract;
-use rand_chacha::ChaCha20Rng;
-use ark_std::rand::SeedableRng;
 
 /// Benchmark trace generation for different program sizes
 #[cfg(feature = "bench")]

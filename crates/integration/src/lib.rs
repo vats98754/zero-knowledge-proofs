@@ -121,7 +121,7 @@ pub fn token_contract_integration_test() -> anyhow::Result<()> {
     let mut plonk_backend = PlonkBackend::new();
     let constraints = ConstraintGenerator::generate_plonk_constraints(&transfer_trace);
     plonk_backend.setup(&constraints, &mut rng)?;
-    let transfer_proof = plonk_backend.prove(&transfer_trace, &mut rng)?;
+    let _transfer_proof = plonk_backend.prove(&transfer_trace, &mut rng)?;
     println!("✓ Token transfer proof generated with PLONK");
 
     println!("✓ Token contract integration test completed!");
@@ -149,19 +149,19 @@ pub fn cross_backend_comparison() -> anyhow::Result<()> {
     let mut plonk = PlonkBackend::new();
     let constraints = ConstraintGenerator::generate_plonk_constraints(&trace);
     plonk.setup(&constraints, &mut rng)?;
-    let plonk_proof = plonk.prove(&trace, &mut rng)?;
+    let _plonk_proof = plonk.prove(&trace, &mut rng)?;
     println!("✓ PLONK: proof size ~{} bytes", plonk.proof_size());
     println!("✓ PLONK: verification complexity {}", plonk.verification_complexity());
 
     // STARK
     let stark = StarkBackend::new();
-    let stark_proof = stark.prove(&trace)?;
+    let _stark_proof = stark.prove(&trace)?;
     println!("✓ STARK: proof generated (transparent, no trusted setup)");
 
     // Groth16
     let mut groth = GrothBackend::new();
     groth.setup(&constraints)?;
-    let groth_proof = groth.prove(&trace)?;
+    let _groth_proof = groth.prove(&trace)?;
     println!("✓ Groth16: proof generated (smallest size, trusted setup required)");
 
     println!("✓ Cross-backend comparison completed!");

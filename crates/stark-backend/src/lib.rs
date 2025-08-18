@@ -1,4 +1,4 @@
-use zkvm_core::{ExecutionTrace, ConstraintSystem, ConstraintGenerator};
+use zkvm_core::{ExecutionTrace, ConstraintGenerator};
 use thiserror::Error;
 use serde::{Deserialize, Serialize};
 

@@ -1,6 +1,6 @@
 use crate::ExecutionTrace;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+
 
 /// Constraint types for different backends
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -182,7 +182,7 @@ impl ConstraintGenerator {
         constraints
     }
 
-    fn generate_memory_constraints(trace: &ExecutionTrace) -> Vec<Constraint> {
+    fn generate_memory_constraints(_trace: &ExecutionTrace) -> Vec<Constraint> {
         let mut constraints = Vec::new();
 
         // Memory consistency: load/store operations must be consistent
@@ -200,7 +200,7 @@ impl ConstraintGenerator {
         constraints
     }
 
-    fn generate_range_constraints(trace: &ExecutionTrace) -> Vec<Constraint> {
+    fn generate_range_constraints(_trace: &ExecutionTrace) -> Vec<Constraint> {
         let mut constraints = Vec::new();
 
         // Range constraints for opcodes
@@ -238,7 +238,7 @@ impl ConstraintGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{TraceRow, Instruction};
+    use crate::TraceRow;
 
     #[test]
     fn test_constraint_generation() {

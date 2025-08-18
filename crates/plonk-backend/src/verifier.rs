@@ -1,7 +1,5 @@
 use crate::{PlonkVerifyingKey, PlonkProof, PlonkError, Result};
-use ark_bn254::{Fr, Bn254};
-use ark_ec::pairing::Pairing;
-use ark_ff::{Zero, One};
+use ark_bn254::Fr;
 
 /// PLONK verifier
 pub struct PlonkVerifier<'a> {
@@ -89,7 +87,7 @@ impl<'a> PlonkVerifier<'a> {
         let k1 = Fr::from(7u64);  // Coset shift for wire b
         let k2 = Fr::from(13u64); // Coset shift for wire c
         
-        let omega = Fr::from(2u64); // Primitive root (simplified)
+        let _omega = Fr::from(2u64); // Primitive root (simplified)
         let perm_eval = alpha * proof.z_omega_eval * 
                        (proof.a_eval + beta * xi + gamma) *
                        (proof.b_eval + beta * k1 * xi + gamma) *
@@ -205,7 +203,7 @@ mod tests {
         let constraints = ConstraintGenerator::generate_plonk_constraints(&trace);
         
         let setup = PlonkSetup::new(&constraints, &mut rng).unwrap();
-        let verifier = PlonkVerifier::new(&setup.verifying_key);
+        let _verifier = PlonkVerifier::new(&setup.verifying_key);
         
         // Test that verifier can be created
         assert!(true);

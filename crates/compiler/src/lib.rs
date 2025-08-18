@@ -1,4 +1,4 @@
-use zkvm_core::{ExecutionTrace, ZkVm, ConstraintSystem, ConstraintGenerator};
+use zkvm_core::{ExecutionTrace, ZkVm};
 use thiserror::Error;
 
 pub mod assembler;

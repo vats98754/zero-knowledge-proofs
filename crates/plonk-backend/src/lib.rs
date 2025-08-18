@@ -1,9 +1,6 @@
 use zkvm_core::{ExecutionTrace, ConstraintSystem, ConstraintGenerator};
 use thiserror::Error;
-use serde::{Deserialize, Serialize};
-use ark_ff::{Field, UniformRand};
 use ark_bn254::{Fr, G1Projective, G2Projective};
-use ark_ec::Group;
 use ark_std::rand::RngCore;
 
 pub mod prover;

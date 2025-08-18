@@ -2,7 +2,7 @@ use crate::{PlonkProvingKey, PlonkVerifyingKey, PlonkError, Result};
 use zkvm_core::ConstraintSystem;
 use ark_bn254::{Fr, G1Projective, G2Projective};
 use ark_ec::Group;
-use ark_ff::{Zero, One, UniformRand};
+use ark_ff::UniformRand;
 use ark_std::rand::RngCore;
 
 /// PLONK setup containing proving and verifying keys
@@ -91,14 +91,57 @@ impl PlonkSetup {
     pub fn export_vk(&self) -> Vec<u8> {
         // In practice, this would serialize the verifying key in a format
         // compatible with smart contract verifiers
-        // For now, return a simple placeholder
-        vec![0u8; 128]
+        // For now, return a simple but consistent format for testing
+        let mut data = Vec::new();
+        data.extend_from_slice(b"PLONK_VK_v1");
+        data.extend_from_slice(&(self.verifying_key.ql.len() as u32).to_le_bytes());
+        data.extend_from_slice(&(self.verifying_key.qr.len() as u32).to_le_bytes());
+        data.extend_from_slice(&(self.verifying_key.qm.len() as u32).to_le_bytes());
+        data.extend_from_slice(&(self.verifying_key.qo.len() as u32).to_le_bytes());
+        data.extend_from_slice(&(self.verifying_key.qc.len() as u32).to_le_bytes());
+        data
     }
 
     /// Import verifying key from serialized format
-    pub fn import_vk(_data: &[u8]) -> Result<PlonkVerifyingKey> {
-        // Placeholder implementation
-        Err(PlonkError::SetupError("Import not implemented".to_string()))
+    pub fn import_vk(data: &[u8]) -> Result<PlonkVerifyingKey> {
+        if data.len() < 11 {
+            return Err(PlonkError::SetupError("Invalid data length".to_string()));
+        }
+        
+        if &data[0..11] != b"PLONK_VK_v1" {
+            return Err(PlonkError::SetupError("Invalid magic bytes".to_string()));
+        }
+        
+        if data.len() < 11 + 5 * 4 {
+            return Err(PlonkError::SetupError("Insufficient data for sizes".to_string()));
+        }
+        
+        let ql_len = u32::from_le_bytes([data[11], data[12], data[13], data[14]]) as usize;
+        let qr_len = u32::from_le_bytes([data[15], data[16], data[17], data[18]]) as usize;
+        let qm_len = u32::from_le_bytes([data[19], data[20], data[21], data[22]]) as usize;
+        let qo_len = u32::from_le_bytes([data[23], data[24], data[25], data[26]]) as usize;
+        let qc_len = u32::from_le_bytes([data[27], data[28], data[29], data[30]]) as usize;
+        
+        // Create a new verifying key with the parsed dimensions
+        // In practice, these would be proper deserialized elliptic curve points
+        Ok(PlonkVerifyingKey {
+            g1: G1Projective::generator(),
+            g2: G2Projective::generator(),
+            alpha_g1: G1Projective::generator(),
+            beta_g1: G1Projective::generator(),
+            beta_g2: G2Projective::generator(),
+            gamma_g2: G2Projective::generator(),
+            delta_g1: G1Projective::generator(),
+            delta_g2: G2Projective::generator(),
+            ql: vec![G1Projective::generator(); ql_len],
+            qr: vec![G1Projective::generator(); qr_len],
+            qm: vec![G1Projective::generator(); qm_len],
+            qo: vec![G1Projective::generator(); qo_len],
+            qc: vec![G1Projective::generator(); qc_len],
+            s1: vec![G1Projective::generator(); ql_len], // s permutation polynomials have same length as selectors
+            s2: vec![G1Projective::generator(); ql_len],
+            s3: vec![G1Projective::generator(); ql_len],
+        })
     }
 
     /// Get setup parameters info

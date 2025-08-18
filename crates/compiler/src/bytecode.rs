@@ -149,7 +149,7 @@ pub struct BytecodeStats {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zkvm_core::{Instruction, Opcode};
+    use zkvm_core::Instruction;
 
     #[test]
     fn test_bytecode_creation() {

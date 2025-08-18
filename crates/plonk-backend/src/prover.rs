@@ -2,7 +2,7 @@ use crate::{PlonkProvingKey, PlonkProof, PlonkError, Result};
 use zkvm_core::{ExecutionTrace, ConstraintSystem};
 use ark_bn254::{Fr, G1Projective};
 use ark_ff::{Zero, One, UniformRand};
-use ark_ec::{Group, AffineRepr};
+use ark_ec::Group;
 use ark_std::rand::RngCore;
 
 /// PLONK prover
@@ -19,7 +19,7 @@ impl<'a> PlonkProver<'a> {
     pub fn prove<R: RngCore>(
         &self,
         trace: &ExecutionTrace,
-        constraints: &ConstraintSystem,
+        _constraints: &ConstraintSystem,
         rng: &mut R,
     ) -> Result<PlonkProof> {
         // This is a simplified PLONK prover implementation
@@ -202,7 +202,7 @@ mod tests {
         let constraints = ConstraintGenerator::generate_plonk_constraints(&trace);
         
         let setup = PlonkSetup::new(&constraints, &mut rng).unwrap();
-        let prover = PlonkProver::new(&setup.proving_key);
+        let _prover = PlonkProver::new(&setup.proving_key);
         
         // Test that prover can be created
         assert!(true);
