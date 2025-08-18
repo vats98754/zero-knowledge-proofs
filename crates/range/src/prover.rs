@@ -53,6 +53,15 @@ impl RangeProver {
         let bits = bit_decompose(value, bit_length);
         let value_scalar = Scalar::from(value);
 
+        // Ensure we have enough generators for the constraint system
+        let required_generators = 2 * bit_length;
+        if self.generators.vector_length() < required_generators {
+            return Err(BulletproofsError::InsufficientGenerators {
+                needed: required_generators,
+                available: self.generators.vector_length(),
+            });
+        }
+
         // Create constraint system
         let constraint_system = ConstraintSystem::new(&self.generators, bit_length);
 
@@ -61,15 +70,20 @@ impl RangeProver {
 
         // Create commitments
         let commitment = self.commit_to_value(value_scalar, blinding)?;
-        let bit_commitment = constraint_system.commit_to_vectors(&a_vector, &b_vector, blinding)?;
+        
+        // Create the bit commitment using IPA's commitment method with the right generators
+        // We need to use only the generators that the constraint system expects
+        let constraint_generators = self.generators.subset(required_generators)?;
+        
+        let bit_commitment = constraint_generators.inner_product_commit(&a_vector, &b_vector)?;
 
-        // Create IPA proof for the constraint vectors
+        // Create IPA proof for the constraint vectors using the constraint generators
         let mut transcript = bulletproofs_core::transcript::bulletproofs_transcript(b"RangeProof");
         transcript.append_point(b"commitment", &GroupElement::from(commitment));
-        transcript.append_point(b"bit_commitment", &GroupElement::from(bit_commitment));
+        transcript.append_point(b"bit_commitment", &bit_commitment);
         transcript.append_message(b"bit_length", &(bit_length as u64).to_le_bytes());
 
-        let mut ipa_prover = InnerProductProver::new(self.generators.clone());
+        let mut ipa_prover = InnerProductProver::new(constraint_generators);
 
         let ipa_proof = ipa_prover.prove(
             rng,

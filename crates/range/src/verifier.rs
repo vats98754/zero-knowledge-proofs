@@ -37,6 +37,15 @@ impl RangeVerifier {
             ));
         }
 
+        // Ensure we have enough generators for the constraint system
+        let required_generators = 2 * bit_length;
+        if self.generators.vector_length() < required_generators {
+            return Err(BulletproofsError::InsufficientGenerators {
+                needed: required_generators,
+                available: self.generators.vector_length(),
+            });
+        }
+
         // Decompress points
         let commitment = proof.commitment()
             .decompress()
@@ -55,8 +64,10 @@ impl RangeVerifier {
         transcript.append_point(b"bit_commitment", &GroupElement::from(bit_commitment));
         transcript.append_message(b"bit_length", &(bit_length as u64).to_le_bytes());
 
-        // Verify IPA proof
-        let mut ipa_verifier = InnerProductVerifier::new(self.generators.clone());
+        // Verify IPA proof using the same constraint generators
+        let constraint_generators = self.generators.subset(required_generators)?;
+        
+        let mut ipa_verifier = InnerProductVerifier::new(constraint_generators);
         let rng = rand::rngs::OsRng;
 
         let verified = ipa_verifier.verify(

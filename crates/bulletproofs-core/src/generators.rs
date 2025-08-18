@@ -197,6 +197,25 @@ impl GeneratorSet {
         
         self.precomputed_tables = Some(tables);
     }
+    
+    /// Create a subset of generators with the specified length
+    pub fn subset(&self, length: usize) -> BulletproofsResult<GeneratorSet> {
+        if length > self.vector_length() {
+            return Err(BulletproofsError::InsufficientGenerators {
+                needed: length,
+                available: self.vector_length(),
+            });
+        }
+        
+        Ok(GeneratorSet {
+            g: self.g,
+            h: self.h,
+            g_vec: self.g_vec[..length].to_vec(),
+            h_vec: self.h_vec[..length].to_vec(),
+            u: self.u,
+            precomputed_tables: None,
+        })
+    }
 }
 
 
