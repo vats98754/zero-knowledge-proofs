@@ -1,0 +1,14 @@
+[package]
+name = "examples"
+version = "0.1.0"
+edition = "2021"
+description = "Example programs for zkVM"
+
+[dependencies]
+zkvm-core = { path = "../zkvm-core" }
+compiler = { path = "../compiler" }
+plonk-backend = { path = "../plonk-backend" }
+stark-backend = { path = "../stark-backend" }
+groth-backend = { path = "../groth-backend" }
+anyhow = { workspace = true }
+serde = { workspace = true }

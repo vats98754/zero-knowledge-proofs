@@ -1,0 +1,24 @@
+[package]
+name = "plonk-backend"
+version = "0.1.0"
+edition = "2021"
+description = "PLONK backend for zkVM proof generation"
+
+[dependencies]
+zkvm-core = { path = "../zkvm-core" }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+rand = { workspace = true }
+rand_chacha = { workspace = true }
+
+# Arkworks cryptographic dependencies
+ark-ff = { workspace = true }
+ark-ec = { workspace = true }
+ark-poly = { workspace = true }
+ark-std = { workspace = true }
+ark-serialize = { workspace = true }
+ark-bn254 = { workspace = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
