@@ -16,7 +16,7 @@ fn bench_range_proof_generation(c: &mut Criterion) {
             &bit_length,
             |b, &bit_length| {
                 let mut rng = thread_rng();
-                let prover = RangeProver::new(&mut rng);
+                let prover = RangeProver::new(&mut rng, 128); // Support up to 64 bit ranges
                 let value = (1u64 << (bit_length - 1)) - 1; // Near max value
                 
                 b.iter(|| {
@@ -69,7 +69,8 @@ fn bench_range_proof_size(c: &mut Criterion) {
     let mut rng = thread_rng();
     
     for bit_length in [8, 16, 32, 64] {
-        let prover = RangeProver::new(&mut rng);
+        let mut rng = thread_rng();
+        let prover = RangeProver::new(&mut rng, 128); // Support up to 64 bit ranges
         let value = (1u64 << (bit_length - 1)) - 1;
         let proof = prover.prove_range(value, bit_length, None, &mut rng).unwrap();
         let size = proof.to_bytes().len();

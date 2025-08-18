@@ -39,3 +39,4 @@ itertools = "0.12"
 
 # CLI
 clap = { version = "4.0", features = ["derive"] }
+hex = "0.4"

@@ -37,6 +37,9 @@ pub mod prover;
 pub mod verifier;
 pub mod constraints;
 
+#[cfg(test)]
+pub mod property_tests;
+
 pub use proof::*;
 pub use prover::*;
 pub use verifier::*;

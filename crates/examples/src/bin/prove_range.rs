@@ -11,7 +11,7 @@ use std::io::{self, Write};
 #[command(about = "Generate a range proof for a value")]
 struct Args {
     /// The value to prove is in range
-    #[arg(short, long)]
+    #[arg(long)]
     value: u64,
     
     /// Number of bits for the range [0, 2^bits)
@@ -49,7 +49,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut rng = thread_rng();
     
     // Create prover  
-    let prover = RangeProver::new(&mut rng, args.bits);
+    let prover = RangeProver::new(&mut rng, args.bits * 2); // Support enough generators
     
     if args.verbose {
         eprintln!("Generating proof...");
