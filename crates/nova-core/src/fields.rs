@@ -4,7 +4,6 @@
 //! and utilities for multilinear polynomial operations.
 
 use ark_bls12_381::Fr;
-use ark_ff::{Field, PrimeField};
 use ark_std::{vec::Vec, Zero, One};
 
 /// The field used in Nova operations (BLS12-381 scalar field)
@@ -134,7 +133,7 @@ pub fn sum_of_squares(elements: &[NovaField]) -> NovaField {
 mod tests {
     use super::*;
     use ark_std::test_rng;
-    use ark_ff::UniformRand;
+    use ark_ff::{UniformRand, Field};
 
     #[test]
     fn test_multilinear_polynomial_creation() {

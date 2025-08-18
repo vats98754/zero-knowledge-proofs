@@ -5,7 +5,7 @@
 
 use crate::fields::NovaField;
 use crate::errors::{NovaError, NovaResult};
-use ark_ff::{PrimeField, Field, BigInteger};
+use ark_ff::{PrimeField, BigInteger};
 use ark_std::{vec::Vec, format};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -217,7 +217,7 @@ impl VerifierTranscript {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ark_std::{vec, Zero, One};
+    use ark_std::{vec, Zero};
 
     #[test]
     fn test_transcript_creation() {

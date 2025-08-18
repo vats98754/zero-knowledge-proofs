@@ -4,9 +4,9 @@
 //! incremental verifiable computation scheme.
 
 use crate::fields::NovaField;
-use crate::instances::{Instance, Relation};
+use crate::instances::Relation;
 use crate::errors::NovaError;
-use ark_std::{vec::Vec, Zero};
+use ark_std::vec::Vec;
 
 /// Represents witness data for a computational instance.
 /// 
@@ -290,7 +290,7 @@ impl Default for WitnessAccumulator {
 mod tests {
     use super::*;
     use crate::fields::NovaField;
-    use ark_std::{vec, Zero, One};
+    use ark_std::vec;
 
     #[test]
     fn test_witness_creation() {

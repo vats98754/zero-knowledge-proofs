@@ -4,13 +4,12 @@
 //! incremental verification. The folding operation compresses multiple instances
 //! and witnesses into a single instance and witness while preserving correctness.
 
-use crate::fields::{NovaField, inner_product};
+use crate::fields::NovaField;
 use crate::instances::{Instance, Relation};
 use crate::witnesses::{Witness, FoldedWitness};
 use crate::transcripts::Transcript;
 use crate::errors::{NovaError, NovaResult};
-use ark_std::{vec::Vec, Zero, One};
-use ark_ff::Field;
+use ark_std::vec::Vec;
 use rayon::prelude::*;
 
 /// The core folding operation that compresses instances and witnesses.
