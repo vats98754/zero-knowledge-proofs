@@ -24,11 +24,11 @@ fn bench_end_to_end_nova(c: &mut Criterion) {
             |b, _| {
                 b.iter(|| {
                     // Create folding scheme
-                    let folding_scheme = FoldingScheme::new();
+                    let relation = Relation::new(size * size + size + 1); // matrix + vector + result_index
+                    let folding_scheme = FoldingScheme::new(relation.clone());
                     
                     // Create initial instance and witness
-                    let relation = Relation::new(size * size + size + 1); // matrix + vector + result_index
-                    let instance = Instance::new(relation, size * size + size + 1).unwrap();
+                    let instance = Instance::new(relation.clone(), size * size + size + 1).unwrap();
                     
                     let mut witness_data = vec![NovaField::zero()]; // result index
                     for row in black_box(&matrix) {
@@ -39,12 +39,13 @@ fn bench_end_to_end_nova(c: &mut Criterion) {
                     let witness = Witness::new(witness_data);
                     
                     // Simulate folding steps
-                    let mut accumulator = FoldingAccumulator::new(instance, witness);
+                    let mut accumulator = FoldingAccumulator::new(folding_scheme);
+                    let mut transcript = Transcript::new("nova-end-to-end");
+                    accumulator.accumulate(instance, witness, &mut transcript).unwrap();
                     
                     for step in 1..=size {
                         // Create step instance and witness
-                        let step_relation = Relation::new(size * size + size + 1);
-                        let step_instance = Instance::new(step_relation, size * size + size + 1).unwrap();
+                        let step_instance = Instance::new(relation.clone(), size * size + size + 1).unwrap();
                         
                         let mut step_witness_data = vec![NovaField::from(step as u64)];
                         for row in &matrix {
@@ -53,9 +54,8 @@ fn bench_end_to_end_nova(c: &mut Criterion) {
                         step_witness_data.extend_from_slice(&vector);
                         
                         let step_witness = Witness::new(step_witness_data);
-                        let randomness = NovaField::from((step * 123) as u64);
                         
-                        accumulator.fold_instance(step_instance, step_witness, randomness).unwrap();
+                        accumulator.accumulate(step_instance, step_witness, &mut transcript).unwrap();
                     }
                     
                     accumulator
@@ -70,18 +70,23 @@ fn bench_end_to_end_nova(c: &mut Criterion) {
             |b, _| {
                 // Setup
                 let relation = Relation::new(size);
-                let instance = Instance::new(relation, size).unwrap();
-                let witness_data: Vec<NovaField> = (0..size).map(|_| NovaField::rand(&mut rng)).collect();
-                let witness = Witness::new(witness_data);
+                let folding_scheme = FoldingScheme::new(relation.clone());
+                let instance1 = Instance::new(relation.clone(), size).unwrap();
+                let witness1_data: Vec<NovaField> = (0..size).map(|_| NovaField::rand(&mut rng)).collect();
+                let witness1 = Witness::new(witness1_data);
+                let instance2 = Instance::new(relation, size).unwrap();
+                let witness2_data: Vec<NovaField> = (0..size).map(|_| NovaField::rand(&mut rng)).collect();
+                let witness2 = Witness::new(witness2_data);
                 
                 b.iter(|| {
-                    let folding_scheme = FoldingScheme::new();
-                    let randomness = NovaField::rand(&mut rng);
+                    let mut transcript = Transcript::new("nova-folding");
                     
-                    folding_scheme.fold_step(
-                        black_box(&instance),
-                        black_box(&witness),
-                        black_box(randomness),
+                    folding_scheme.fold(
+                        black_box(&instance1),
+                        black_box(&witness1),
+                        black_box(&instance2),
+                        black_box(&witness2),
+                        black_box(&mut transcript),
                     )
                 });
             },
@@ -93,20 +98,23 @@ fn bench_end_to_end_nova(c: &mut Criterion) {
             &size,
             |b, _| {
                 // Setup
-                let folding_scheme = FoldingScheme::new();
                 let relation = Relation::new(size);
-                let instance = Instance::new(relation, size).unwrap();
-                let witness_data: Vec<NovaField> = (0..size).map(|_| NovaField::rand(&mut rng)).collect();
-                let witness = Witness::new(witness_data);
-                let randomness = NovaField::rand(&mut rng);
-                
-                let (folded_instance, _) = folding_scheme.fold_step(&instance, &witness, randomness).unwrap();
+                let folding_scheme = FoldingScheme::new(relation.clone());
+                let instance1 = Instance::new(relation.clone(), size).unwrap();
+                let witness1_data: Vec<NovaField> = (0..size).map(|_| NovaField::rand(&mut rng)).collect();
+                let witness1 = Witness::new(witness1_data);
+                let instance2 = Instance::new(relation, size).unwrap();
+                let witness2_data: Vec<NovaField> = (0..size).map(|_| NovaField::rand(&mut rng)).collect();
+                let witness2 = Witness::new(witness2_data);
                 
                 b.iter(|| {
-                    folding_scheme.validate_folding(
-                        black_box(&instance),
-                        black_box(&folded_instance),
-                        black_box(randomness),
+                    let mut transcript = Transcript::new("nova-verification");
+                    folding_scheme.fold(
+                        black_box(&instance1),
+                        black_box(&witness1),
+                        black_box(&instance2),
+                        black_box(&witness2),
+                        black_box(&mut transcript),
                     )
                 });
             },
@@ -130,8 +138,9 @@ fn bench_recursion_depth(c: &mut Criterion) {
             &depth,
             |b, _| {
                 b.iter(|| {
-                    // Create initial instances
+                    // Create folding scheme
                     let relation = Relation::new(base_size);
+                    let folding_scheme = FoldingScheme::new(relation.clone());
                     let mut instances = Vec::new();
                     
                     // Create 2^depth instances to fold
@@ -158,14 +167,17 @@ fn bench_recursion_depth(c: &mut Criterion) {
                                 let (inst1, wit1) = &chunk[0];
                                 let (inst2, wit2) = &chunk[1];
                                 
-                                let mut accumulator = FoldingAccumulator::new(inst1.clone(), wit1.clone());
-                                let randomness = NovaField::from((level * 100 + 42) as u64);
-                                accumulator.fold_instance(inst2.clone(), wit2.clone(), randomness).unwrap();
-                                
-                                next_level.push((
-                                    accumulator.current_instance().clone(),
-                                    accumulator.current_witness().clone(),
-                                ));
+                        let mut accumulator = FoldingAccumulator::new(folding_scheme.clone());
+                        let mut transcript = Transcript::new("nova-recursion");
+                        accumulator.accumulate(inst1.clone(), wit1.clone(), &mut transcript).unwrap();
+                        accumulator.accumulate(inst2.clone(), wit2.clone(), &mut transcript).unwrap();
+                        
+                        if let Some((acc_instance, acc_witness)) = accumulator.current() {
+                            next_level.push((
+                                acc_instance.clone(),
+                                acc_witness.to_witness(),
+                            ));
+                        }
                             } else {
                                 next_level.push(chunk[0].clone());
                             }
@@ -198,13 +210,16 @@ fn bench_memory_scaling(c: &mut Criterion) {
             |b, _| {
                 b.iter(|| {
                     let relation = Relation::new(size);
-                    let instance = Instance::new(relation, size).unwrap();
+                    let instance = Instance::new(relation.clone(), size).unwrap();
                     let witness_data: Vec<NovaField> = (0..size)
                         .map(|_| NovaField::rand(&mut rng))
                         .collect();
                     let witness = Witness::new(witness_data);
                     
-                    let mut accumulator = FoldingAccumulator::new(instance.clone(), witness.clone());
+                    let folding_scheme = FoldingScheme::new(relation.clone());
+                    let mut accumulator = FoldingAccumulator::new(folding_scheme);
+                    let mut transcript = Transcript::new("nova-memory");
+                    accumulator.accumulate(instance.clone(), witness.clone(), &mut transcript).unwrap();
                     
                     // Fold multiple instances to see memory growth
                     for i in 1..=10 {
@@ -212,16 +227,20 @@ fn bench_memory_scaling(c: &mut Criterion) {
                             .map(|_| NovaField::rand(&mut rng))
                             .collect();
                         let step_witness = Witness::new(step_witness_data);
-                        let randomness = NovaField::from((i * 789) as u64);
                         
-                        accumulator.fold_instance(
+                        accumulator.accumulate(
                             black_box(instance.clone()),
                             black_box(step_witness),
-                            black_box(randomness),
+                            black_box(&mut transcript),
                         ).unwrap();
                     }
                     
-                    accumulator.current_witness().data().len()
+                    // Return size of current witness data
+                    if let Some((_, folded_witness)) = accumulator.current() {
+                        folded_witness.original_witnesses.len()
+                    } else {
+                        0
+                    }
                 });
             },
         );

@@ -28,3 +28,7 @@ path = "src/recursive_computation.rs"
 [[example]]
 name = "fibonacci"
 path = "src/fibonacci.rs"
+
+[[example]]
+name = "optimization_demo"
+path = "src/optimization_demo.rs"

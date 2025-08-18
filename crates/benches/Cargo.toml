@@ -29,3 +29,7 @@ harness = false
 [[bench]]
 name = "commitment_performance"
 harness = false
+
+[[bench]]
+name = "optimization_performance"
+harness = false

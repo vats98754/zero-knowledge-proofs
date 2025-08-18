@@ -59,6 +59,11 @@ impl FibonacciCircuit {
         let relation = Relation::new(4); // current, previous, step, target
         Instance::new(relation, 4)
     }
+
+    /// Create the relation for this computation
+    pub fn to_relation(&self) -> NovaResult<Relation> {
+        Ok(Relation::new(4)) // current, previous, step, target
+    }
 }
 
 /// Demonstrate incremental Fibonacci computation with Nova folding
@@ -70,7 +75,8 @@ pub fn demo_fibonacci_folding(n: u64) -> NovaResult<()> {
     let mut circuit = FibonacciCircuit::new(n);
     
     // Create folding scheme
-    let folding_scheme = FoldingScheme::new();
+    let relation = circuit.to_relation()?;
+    let folding_scheme = FoldingScheme::new(relation);
     
     // Initial instance and witness
     let initial_instance = circuit.to_instance()?;
@@ -79,7 +85,9 @@ pub fn demo_fibonacci_folding(n: u64) -> NovaResult<()> {
     println!("F({}) = {}", circuit.step - 1, circuit.current);
     
     // Create accumulator for folding
-    let mut accumulator = FoldingAccumulator::new(initial_instance, initial_witness);
+    let mut accumulator = FoldingAccumulator::new(folding_scheme);
+    let mut transcript = Transcript::new("fibonacci-folding");
+    accumulator.accumulate(initial_instance, initial_witness, &mut transcript)?;
     
     // Perform incremental computation
     let mut folding_steps = 0;
@@ -94,8 +102,7 @@ pub fn demo_fibonacci_folding(n: u64) -> NovaResult<()> {
         let step_witness = circuit.to_witness();
         
         // Fold this step into the accumulator
-        let randomness = NovaField::from((folding_steps * 123 + 456) as u64); // Deterministic for demo
-        accumulator.fold_instance(step_instance, step_witness, randomness)?;
+        accumulator.accumulate(step_instance, step_witness, &mut transcript)?;
         
         if is_complete {
             break;
@@ -115,13 +122,15 @@ pub fn demo_fibonacci_folding(n: u64) -> NovaResult<()> {
         println!("✅ Fibonacci computation verified successfully!");
     } else {
         println!("❌ Fibonacci computation verification failed!");
-        return Err(NovaError::ValidationFailed("Fibonacci mismatch".to_string()));
+        return Err(NovaError::computation_error("Fibonacci mismatch"));
     }
     
     println!("\n📊 Folding Statistics:");
     println!("  Target Fibonacci number: F({})", n);
     println!("  Computation steps: {}", folding_steps);
-    println!("  Accumulator witness size: {}", accumulator.current_witness().data().len());
+    if let Some((_, folded_witness)) = accumulator.current() {
+        println!("  Accumulator witness size: {}", folded_witness.original_witnesses.len());
+    }
     
     Ok(())
 }

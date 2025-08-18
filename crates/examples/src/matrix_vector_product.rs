@@ -88,6 +88,16 @@ impl MatrixVectorCircuit {
         
         Instance::new(relation, instance_size)
     }
+
+    /// Create relation for this computation
+    pub fn to_relation(&self) -> NovaResult<Relation> {
+        let m = self.matrix.len();
+        let n = if m > 0 { self.matrix[0].len() } else { 0 };
+        
+        // Instance size includes: current_row + result_vector + matrix + input_vector
+        let instance_size = 1 + m + (m * n) + n;
+        Ok(Relation::new(instance_size))
+    }
 }
 
 /// Demonstrate incremental matrix-vector multiplication
@@ -126,7 +136,8 @@ pub fn demo_matrix_vector_folding() -> NovaResult<()> {
     let mut circuit = MatrixVectorCircuit::new(matrix.clone(), vector.clone());
     
     // Create folding scheme
-    let folding_scheme = FoldingScheme::new();
+    let relation = circuit.to_relation()?;
+    let folding_scheme = FoldingScheme::new(relation);
     
     // Initial instance and witness
     let initial_instance = circuit.to_instance()?;
@@ -135,7 +146,9 @@ pub fn demo_matrix_vector_folding() -> NovaResult<()> {
     println!("\n🔄 Starting incremental computation...");
     
     // Create accumulator for folding
-    let mut accumulator = FoldingAccumulator::new(initial_instance.clone(), initial_witness.clone());
+    let mut accumulator = FoldingAccumulator::new(folding_scheme);
+    let mut transcript = Transcript::new("matrix-vector-folding");
+    accumulator.accumulate(initial_instance.clone(), initial_witness.clone(), &mut transcript)?;
     
     let mut step_count = 0;
     
@@ -152,8 +165,7 @@ pub fn demo_matrix_vector_folding() -> NovaResult<()> {
         let step_witness = circuit.to_witness();
         
         // Fold this step into the accumulator
-        let randomness = NovaField::from((step_count * 17 + 42) as u64); // Deterministic for demo
-        accumulator.fold_instance(step_instance, step_witness, randomness)?;
+        accumulator.accumulate(step_instance, step_witness, &mut transcript)?;
         
         println!("  ✅ Folded step {} into accumulator", step_count);
         
@@ -181,13 +193,15 @@ pub fn demo_matrix_vector_folding() -> NovaResult<()> {
         println!("✅ Computation verified successfully!");
     } else {
         println!("❌ Computation verification failed!");
-        return Err(NovaError::ValidationFailed("Matrix-vector computation mismatch".to_string()));
+        return Err(NovaError::computation_error("Matrix-vector computation mismatch"));
     }
     
     println!("\n📊 Folding Statistics:");
     println!("  Total steps: {}", step_count);
     println!("  Accumulator instances folded: {}", step_count);
-    println!("  Final accumulator witness size: {}", accumulator.current_witness().data().len());
+    if let Some((_, folded_witness)) = accumulator.current() {
+        println!("  Final accumulator witness size: {}", folded_witness.original_witnesses.len());
+    }
     
     Ok(())
 }
