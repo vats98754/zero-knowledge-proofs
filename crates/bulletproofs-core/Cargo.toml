@@ -1,0 +1,21 @@
+[package]
+name = "bulletproofs-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Core types and traits for Bulletproofs zero-knowledge proofs"
+
+[dependencies]
+curve25519-dalek.workspace = true
+merlin.workspace = true
+rand.workspace = true
+rand_core.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+sha2 = "0.10"
+
+[dev-dependencies]
+proptest.workspace = true

@@ -1,0 +1,28 @@
+[package]
+name = "examples"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Examples and CLI tools for Bulletproofs"
+
+[[bin]]
+name = "prove-range"
+path = "src/bin/prove_range.rs"
+
+[[bin]]
+name = "verify-range"
+path = "src/bin/verify_range.rs"
+
+[dependencies]
+bulletproofs-core = { path = "../bulletproofs-core" }
+ipa = { path = "../ipa" }
+range = { path = "../range" }
+curve25519-dalek.workspace = true
+merlin.workspace = true
+rand.workspace = true
+clap.workspace = true
+serde.workspace = true
+hex.workspace = true

@@ -1,0 +1,22 @@
+[package]
+name = "ipa"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Inner Product Argument implementation for Bulletproofs"
+
+[dependencies]
+bulletproofs-core = { path = "../bulletproofs-core" }
+curve25519-dalek.workspace = true
+merlin.workspace = true
+rand.workspace = true
+rand_core.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+rayon.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
