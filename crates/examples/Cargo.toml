@@ -1,0 +1,34 @@
+[package]
+name = "examples"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Examples demonstrating Nova incremental verifiable computation"
+
+[dependencies]
+nova-core = { path = "../nova-core" }
+folding = { path = "../folding" }
+commitments = { path = "../commitments" }
+ark-std.workspace = true
+ark-ff.workspace = true
+ark-bls12-381.workspace = true
+rand.workspace = true
+
+[[example]]
+name = "matrix_vector_product"
+path = "src/matrix_vector_product.rs"
+
+[[example]]
+name = "recursive_computation"
+path = "src/recursive_computation.rs"
+
+[[example]]
+name = "fibonacci"
+path = "src/fibonacci.rs"
+
+[[example]]
+name = "optimization_demo"
+path = "src/optimization_demo.rs"

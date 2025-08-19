@@ -1,0 +1,32 @@
+[package]
+name = "nova-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Core Nova incremental verifiable computation primitives"
+
+[dependencies]
+ark-std.workspace = true
+ark-ff.workspace = true
+ark-ec.workspace = true
+ark-poly.workspace = true
+ark-bls12-381.workspace = true
+ark-relations.workspace = true
+ark-serialize.workspace = true
+ark-crypto-primitives.workspace = true
+thiserror.workspace = true
+rand.workspace = true
+rand_chacha.workspace = true
+rayon.workspace = true
+serde.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+criterion.workspace = true
+
+[[bench]]
+name = "core_ops"
+harness = false

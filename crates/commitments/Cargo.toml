@@ -1,0 +1,31 @@
+[package]
+name = "commitments"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Commitment schemes (KZG, IPA) for Nova with recursion support"
+
+[dependencies]
+nova-core = { path = "../nova-core" }
+ark-std.workspace = true
+ark-ff.workspace = true
+ark-ec.workspace = true
+ark-poly.workspace = true
+ark-poly-commit.workspace = true
+ark-bls12-381.workspace = true
+ark-crypto-primitives.workspace = true
+thiserror.workspace = true
+rand.workspace = true
+rand_chacha.workspace = true
+serde.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+criterion.workspace = true
+
+[[bench]]
+name = "commitment_bench"
+harness = false
