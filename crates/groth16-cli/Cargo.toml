@@ -1,0 +1,25 @@
+[package]
+name = "groth16-cli"
+version = "0.1.0"
+edition = "2021"
+description = "CLI tools for Groth16 operations"
+
+[[bin]]
+name = "groth16-cli"
+path = "src/main.rs"
+
+[dependencies]
+groth16-field = { path = "../groth16-field" }
+groth16-r1cs = { path = "../groth16-r1cs" }
+groth16-qap = { path = "../groth16-qap" }
+groth16-setup = { path = "../groth16-setup" }
+groth16-core = { path = "../groth16-core" }
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+hex.workspace = true
+rand.workspace = true
+
+[lib]
+name = "groth16_cli"
