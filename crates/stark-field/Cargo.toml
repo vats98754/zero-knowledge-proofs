@@ -1,0 +1,23 @@
+[package]
+name = "stark-field"
+version = "0.1.0"
+edition = "2021"
+description = "Field arithmetic for STARK proofs"
+license = "MIT"
+
+[dependencies]
+ark-ff = { workspace = true }
+ark-std = { workspace = true }
+num-bigint = { workspace = true }
+num-traits = { workspace = true }
+rand = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+criterion = { workspace = true }
+
+[[bench]]
+name = "field_ops"
+harness = false

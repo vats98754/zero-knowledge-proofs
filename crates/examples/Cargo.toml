@@ -1,0 +1,26 @@
+[package]
+name = "examples"
+version = "0.1.0"
+edition = "2021"
+description = "STARK examples and demonstrations"
+license = "MIT"
+
+[dependencies]
+stark-field = { path = "../stark-field" }
+air = { path = "../air" }
+trace = { path = "../trace" }
+fri = { path = "../fri" }
+merkle = { path = "../merkle" }
+prover = { path = "../prover" }
+verifier = { path = "../verifier" }
+clap = { workspace = true }
+anyhow = { workspace = true }
+rand = { workspace = true }
+
+[[bin]]
+name = "fibonacci"
+path = "src/bin/fibonacci.rs"
+
+[[bin]]
+name = "simple_cpu"
+path = "src/bin/simple_cpu.rs"

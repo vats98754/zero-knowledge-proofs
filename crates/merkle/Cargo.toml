@@ -1,0 +1,27 @@
+[package]
+name = "merkle"
+version = "0.1.0"
+edition = "2021"
+description = "Merkle tree commitments for STARK proofs"
+license = "MIT"
+
+[dependencies]
+stark-field = { path = "../stark-field" }
+blake2 = { workspace = true }
+sha3 = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+rayon = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+criterion = { workspace = true }
+
+[[bench]]
+name = "merkle_ops"
+harness = false
+
+[features]
+default = ["blake2"]
+blake2 = []
+sha3 = []

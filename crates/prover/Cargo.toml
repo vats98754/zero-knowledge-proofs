@@ -1,0 +1,21 @@
+[package]
+name = "prover"
+version = "0.1.0"
+edition = "2021"
+description = "STARK prover implementation"
+license = "MIT"
+
+[dependencies]
+stark-field = { path = "../stark-field" }
+air = { path = "../air" }
+trace = { path = "../trace" }
+fri = { path = "../fri" }
+merkle = { path = "../merkle" }
+blake2 = { workspace = true }
+rayon = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+rand = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }

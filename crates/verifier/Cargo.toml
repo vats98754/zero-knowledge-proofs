@@ -1,0 +1,18 @@
+[package]
+name = "verifier"
+version = "0.1.0"
+edition = "2021"
+description = "STARK verifier implementation"
+license = "MIT"
+
+[dependencies]
+stark-field = { path = "../stark-field" }
+air = { path = "../air" }
+fri = { path = "../fri" }
+merkle = { path = "../merkle" }
+blake2 = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }

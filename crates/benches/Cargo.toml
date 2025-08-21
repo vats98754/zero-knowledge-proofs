@@ -1,0 +1,21 @@
+[package]
+name = "benches"
+version = "0.1.0"
+edition = "2021"
+description = "STARK benchmarks"
+license = "MIT"
+
+[dependencies]
+stark-field = { path = "../stark-field" }
+air = { path = "../air" }
+trace = { path = "../trace" }
+fri = { path = "../fri" }
+merkle = { path = "../merkle" }
+prover = { path = "../prover" }
+verifier = { path = "../verifier" }
+criterion = { workspace = true }
+rand = { workspace = true }
+
+[[bench]]
+name = "stark_benchmarks"
+harness = false
