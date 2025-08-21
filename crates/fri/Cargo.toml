@@ -1,0 +1,25 @@
+[package]
+name = "fri"
+version = "0.1.0"
+edition = "2021"
+description = "FRI (Fast Reed-Solomon Interactive Oracle Proofs) implementation"
+license = "MIT"
+
+[dependencies]
+stark-field = { path = "../stark-field" }
+merkle = { path = "../merkle" }
+trace = { path = "../trace" }
+ark-poly = { workspace = true }
+ark-ff = { workspace = true }
+rayon = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+rand = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+criterion = { workspace = true }
+
+[[bench]]
+name = "fri_ops"
+harness = false

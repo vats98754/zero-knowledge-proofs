@@ -1,0 +1,18 @@
+[package]
+name = "trace"
+version = "0.1.0"
+edition = "2021"
+description = "Execution trace management for STARK proofs"
+license = "MIT"
+
+[dependencies]
+stark-field = { path = "../stark-field" }
+air = { path = "../air" }
+ark-poly = { workspace = true }
+ark-ff = { workspace = true }
+rayon = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
